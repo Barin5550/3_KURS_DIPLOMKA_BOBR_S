@@ -44,3 +44,16 @@
 33. Stepik [Электронный ресурс] : образовательная платформа. – Режим доступа: https://stepik.org (дата обращения: 11.10.2026).
 34. Todoist [Электронный ресурс] : менеджер задач. – Режим доступа: https://todoist.com (дата обращения: 11.10.2026).
 35. Use window size classes [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes (дата обращения: 11.10.2026).
+
+## Источники, добавленные во 2 семестре
+
+> [ПРОВЕРИТЬ] При итоговом оформлении включить эти источники в общий алфавитный список и перенумеровать ссылки в тексте.
+
+36. RFC 8018. PKCS #5: Password-Based Cryptography Specification. Version 2.1 [Электронный ресурс] / K. Moriarty, B. Kaliski, A. Rusch. – IETF, 2017. – Режим доступа: https://www.rfc-editor.org/rfc/rfc8018 (дата обращения: 11.10.2026).
+37. Adaptive icons [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/develop/ui/views/launch/icon_design_adaptive (дата обращения: 11.10.2026).
+38. Build and release an Android app [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/deployment/android (дата обращения: 11.10.2026).
+39. Build and release a Windows desktop app [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/deployment/windows (дата обращения: 11.10.2026).
+40. GitHub Actions documentation [Электронный ресурс] / GitHub. – Режим доступа: https://docs.github.com/actions (дата обращения: 11.10.2026).
+41. Testing Flutter apps [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/testing/overview (дата обращения: 11.10.2026).
+42. Integration testing [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/testing/integration-tests (дата обращения: 11.10.2026).
+43. Understanding Google Play's app account deletion requirements [Электронный ресурс] // Play Console Help. – Режим доступа: https://support.google.com/googleplay/android-developer/answer/13327111 (дата обращения: 11.10.2026). [ПРОВЕРИТЬ ссылку]
