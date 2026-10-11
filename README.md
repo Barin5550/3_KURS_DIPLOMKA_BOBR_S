@@ -171,6 +171,10 @@ python3 tool/coursework/build_coursework.py --pdf
 Они же одним документом для защиты: [Отчёт_по_критериям.docx](docs/Отчёт_по_критериям.docx)
 и [PDF](docs/Отчёт_по_критериям.pdf), сборка `python3 tool/coursework/build_criteria_report.py --pdf`.
 
+Памятка для подготовки к защите (идея, экраны, где что в коде, короткие ответы):
+[Как_устроено_приложение.md](docs/Как_устроено_приложение.md), [DOCX](docs/Как_устроено_приложение.docx)
+и [PDF](docs/Как_устроено_приложение.pdf), сборка `python3 tool/coursework/build_guide.py --pdf`.
+
 Иконки приложения для всех платформ генерируются скриптом `python3 tool/icons/generate_icons.py`.
 
 ## Структура
