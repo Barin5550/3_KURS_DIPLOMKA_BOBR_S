@@ -105,6 +105,7 @@ flowchart TB
 
 ```mermaid
 erDiagram
+    direction LR
     USERS ||--o{ PLANS : "имеет"
     USERS ||--o{ CUSTOM_TOPICS : "создаёт"
     USERS ||--o{ NOTES : "пишет"
