@@ -16,7 +16,8 @@ class CycleDetectedException implements Exception {
   /// упорядочить.
   CycleDetectedException(this.topicIds);
 
-  /// Темы, которые остались неупорядоченными (входят в цикл или зависят от него).
+  /// Темы, которые остались неупорядоченными (входят в цикл или зависят
+  /// от него).
   final List<String> topicIds;
 
   /// Текст ошибки: перечисляет проблемные темы через запятую.

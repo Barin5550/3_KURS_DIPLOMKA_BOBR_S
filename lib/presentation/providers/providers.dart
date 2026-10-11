@@ -195,8 +195,10 @@ final directionTopicsProvider = FutureProvider.family<List<Topic>, String>((
 
 /// Id тем, которые пользователь добавил в избранное.
 final favoritesProvider = StreamProvider<Set<String>>((ref) {
+  // Без вошедшего пользователя избранного нет.
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(const {});
+  // Поток id избранных тем из базы.
   return ref.watch(topicRepositoryProvider).watchFavorites(userId);
 });
 
@@ -206,20 +208,25 @@ final favoritesProvider = StreamProvider<Set<String>>((ref) {
 
 /// Все планы вошедшего пользователя (обновляются при изменениях в базе).
 final plansProvider = StreamProvider<List<StudyPlan>>((ref) {
+  // Пока никто не вошёл — пустой список.
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(const []);
+  // Поток планов пользователя из репозитория.
   return ref.watch(planRepositoryProvider).watchPlans(userId);
 });
 
 /// Активный план пользователя или `null`, если планов нет.
 final activePlanProvider = StreamProvider<StudyPlan?>((ref) {
+  // Пока никто не вошёл — активного плана нет.
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(null);
+  // Поток активного плана из репозитория.
   return ref.watch(planRepositoryProvider).watchActivePlan(userId);
 });
 
 /// Занятия плана с id [planId], по датам.
 final planSessionsProvider = StreamProvider.family<List<StudySession>, int>(
+  // Просто отдаём поток занятий из репозитория.
   (ref, planId) => ref.watch(planRepositoryProvider).watchSessions(planId),
 );
 
@@ -228,6 +235,8 @@ final planSessionsProvider = StreamProvider.family<List<StudySession>, int>(
 /// AsyncValue — обёртка «загружается / ошибка / готово»; whenData
 /// пересчитывает только готовое значение.
 final planProgressProvider = Provider.family<AsyncValue<PlanProgress>, int>(
+  // Берём занятия плана и, когда они загружены, считаем по ним прогресс
+  // относительно сегодняшней даты.
   (ref, planId) => ref
       .watch(planSessionsProvider(planId))
       .whenData((s) => PlanProgress.fromSessions(s, ref.watch(todayProvider))),
@@ -235,8 +244,10 @@ final planProgressProvider = Provider.family<AsyncValue<PlanProgress>, int>(
 
 /// Все выполненные занятия пользователя (для статистики и истории).
 final completedSessionsProvider = StreamProvider<List<StudySession>>((ref) {
+  // Пока никто не вошёл — пустой список.
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(const []);
+  // Поток выполненных занятий по всем планам пользователя.
   return ref.watch(planRepositoryProvider).watchCompletedSessions(userId);
 });
 
@@ -250,15 +261,19 @@ final notesProvider = StreamProvider.family<List<Note>, String?>((
   ref,
   topicId,
 ) {
+  // Пока никто не вошёл — пустой список.
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(const []);
+  // Поток заметок из репозитория (с фильтром по теме, если он задан).
   return ref.watch(noteRepositoryProvider).watchNotes(userId, topicId: topicId);
 });
 
 /// Журнал завершённых «помидоров» пользователя.
 final pomodorosProvider = StreamProvider<List<PomodoroEntry>>((ref) {
+  // Пока никто не вошёл — пустой список.
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(const []);
+  // Поток записей журнала из репозитория.
   return ref.watch(pomodoroRepositoryProvider).watchPomodoros(userId);
 });
 
@@ -275,7 +290,9 @@ class ThemeModeController extends Notifier<String> {
   /// Меняет тему: сначала в состоянии (интерфейс перерисуется сразу),
   /// затем сохраняет выбор на устройстве.
   Future<void> set(String mode) async {
+    // Новое состояние — все, кто следит за темой, перерисуются.
     state = mode;
+    // Запоминаем выбор, чтобы после перезапуска тема осталась той же.
     await ref.read(sessionStorageProvider).saveThemeMode(mode);
   }
 }
