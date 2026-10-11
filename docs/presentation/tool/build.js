@@ -21,6 +21,8 @@ const PHONE_RATIO = 572 / 1202;
 const AUTHOR = "Баринов Николай Владимирович";
 const GROUP = "ПО2410";
 const SUPERVISOR = "Синтиков Еркебулан Канатович";
+const COLLEGE = "Колледж Astana IT University";
+const CITY_YEAR = "Астана 2026";
 
 function newDeck(title) {
   const pres = new pptxgen();
@@ -90,6 +92,8 @@ function light(pres, title, section) {
 function slideTitle(pres, C, kind, section) {
   const s = pres.addSlide({ masterName: "DARK", sectionTitle: section });
   s.addImage({ path: path.join(IMG, "icon.png"), x: 0.7, y: 0.7, w: 1.0, h: 1.0, objectName: "Иконка приложения", altText: "Иконка «Маршрут»" });
+  T(s, COLLEGE, { x: 1.95, y: 0.7, w: 5.8, h: 1.0, fontSize: 18, bold: true, color: C.background1, valign: "middle" });
+  T(s, CITY_YEAR, { x: 0.7, y: 6.6, w: 7.4, h: 0.35, fontSize: 14, color: C.accent5 });
   T(s, kind.toUpperCase(), { x: 0.7, y: 2.0, w: 7.4, h: 0.4, fontSize: 14, bold: true, color: C.accent1, charSpacing: 2 });
   T(s, "Маршрут", { x: 0.7, y: 2.4, w: 7.4, h: 1.1, fontSize: 60, bold: true, color: C.background1, fontFace: THEME.headFontFace });
   T(s, "Приложение для автоматического формирования персонального плана обучения",
