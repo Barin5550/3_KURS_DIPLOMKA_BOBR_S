@@ -186,15 +186,13 @@ class PlanRepositoryImpl implements PlanRepository {
       );
 
   @override
-  Future<void> replaceOpenSessions(
-    int planId,
-    List<PlannedSession> sessions,
-  ) => _db.transaction(() async {
-    await (_db.delete(
-      _db.sessions,
-    )..where((s) => s.planId.equals(planId) & s.isDone.equals(false))).go();
-    await _insertSessions(planId, sessions);
-  });
+  Future<void> replaceOpenSessions(int planId, List<PlannedSession> sessions) =>
+      _db.transaction(() async {
+        await (_db.delete(
+          _db.sessions,
+        )..where((s) => s.planId.equals(planId) & s.isDone.equals(false))).go();
+        await _insertSessions(planId, sessions);
+      });
 
   @override
   Stream<List<StudySession>> watchCompletedSessions(int userId) {

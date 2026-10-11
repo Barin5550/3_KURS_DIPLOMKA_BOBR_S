@@ -10,8 +10,7 @@ class CycleDetectedException implements Exception {
   final List<String> topicIds;
 
   @override
-  String toString() =>
-      'В зависимостях тем есть цикл: ${topicIds.join(', ')}';
+  String toString() => 'В зависимостях тем есть цикл: ${topicIds.join(', ')}';
 }
 
 /// Топологическая сортировка тем алгоритмом Кана.

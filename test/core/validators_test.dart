@@ -13,7 +13,11 @@ void main() {
       }
     });
     test('корректные адреса', () {
-      for (final good in ['name@mail.ru', 'a.b+c@gmail.com', 'x@sub.domain.kz']) {
+      for (final good in [
+        'name@mail.ru',
+        'a.b+c@gmail.com',
+        'x@sub.domain.kz',
+      ]) {
         expect(Validators.email(good), isNull, reason: good);
       }
     });

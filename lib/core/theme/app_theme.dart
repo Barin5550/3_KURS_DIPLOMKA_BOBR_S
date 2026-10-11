@@ -169,7 +169,9 @@ abstract final class AppTheme {
               states.contains(WidgetState.selected) ? AppColors.orange : null,
         ),
       ),
-      snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 }

@@ -40,18 +40,17 @@ void main() {
 
   test('пропущенные занятия переносятся на сегодня и дальше', () {
     final today = DateTime(2026, 10, 15);
-    final result = const Replanner(
-      scheduler: Scheduler(reviewIntervals: []),
-    ).replan(
-      orderedTopics: topics,
-      sessions: [
-        s('a', DateTime(2026, 10, 12), 60, done: true),
-        s('a', DateTime(2026, 10, 13), 60), // пропущено
-        s('b', DateTime(2026, 10, 14), 60), // пропущено
-      ],
-      settings: settings,
-      today: today,
-    );
+    final result = const Replanner(scheduler: Scheduler(reviewIntervals: []))
+        .replan(
+          orderedTopics: topics,
+          sessions: [
+            s('a', DateTime(2026, 10, 12), 60, done: true),
+            s('a', DateTime(2026, 10, 13), 60), // пропущено
+            s('b', DateTime(2026, 10, 14), 60), // пропущено
+          ],
+          settings: settings,
+          today: today,
+        );
 
     expect(result.sessions.every((x) => !x.date.isBefore(today)), isTrue);
     expect(result.sessions.map((x) => x.topicId), ['a', 'b']);
@@ -64,17 +63,16 @@ void main() {
   });
 
   test('полностью изученные темы не попадают в новый план', () {
-    final result = const Replanner(
-      scheduler: Scheduler(reviewIntervals: []),
-    ).replan(
-      orderedTopics: topics,
-      sessions: [
-        s('a', DateTime(2026, 10, 12), 60, done: true),
-        s('a', DateTime(2026, 10, 13), 60, done: true),
-      ],
-      settings: settings,
-      today: DateTime(2026, 10, 14),
-    );
+    final result = const Replanner(scheduler: Scheduler(reviewIntervals: []))
+        .replan(
+          orderedTopics: topics,
+          sessions: [
+            s('a', DateTime(2026, 10, 12), 60, done: true),
+            s('a', DateTime(2026, 10, 13), 60, done: true),
+          ],
+          settings: settings,
+          today: DateTime(2026, 10, 14),
+        );
     expect(result.sessions.map((x) => x.topicId), ['b']);
   });
 
@@ -95,14 +93,13 @@ void main() {
   });
 
   test('проверяет дедлайн после перепланирования', () {
-    final result = const Replanner(
-      scheduler: Scheduler(reviewIntervals: []),
-    ).replan(
-      orderedTopics: topics,
-      sessions: const [],
-      settings: settings.copyWith(deadline: DateTime(2026, 10, 20)),
-      today: DateTime(2026, 10, 20),
-    );
+    final result = const Replanner(scheduler: Scheduler(reviewIntervals: []))
+        .replan(
+          orderedTopics: topics,
+          sessions: const [],
+          settings: settings.copyWith(deadline: DateTime(2026, 10, 20)),
+          today: DateTime(2026, 10, 20),
+        );
     expect(result.deadlineMet, isFalse);
     // 180 минут за один день: нужно 20,5 ч/нед (175,7 мин/день → округление до 180).
     expect(result.requiredHoursPerWeek, 20.5);

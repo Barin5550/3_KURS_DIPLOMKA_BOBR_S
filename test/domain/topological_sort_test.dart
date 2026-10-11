@@ -38,21 +38,24 @@ void main() {
       }
     });
 
-    test('независимые темы упорядочены по уровню, затем по исходной позиции', () {
-      final topics = [
-        t('hard', level: 3),
-        t('easy_b', level: 1),
-        t('medium', level: 2),
-        t('easy_a', level: 1),
-      ];
+    test(
+      'независимые темы упорядочены по уровню, затем по исходной позиции',
+      () {
+        final topics = [
+          t('hard', level: 3),
+          t('easy_b', level: 1),
+          t('medium', level: 2),
+          t('easy_a', level: 1),
+        ];
 
-      expect(ids(topologicalSort(topics)), [
-        'easy_b',
-        'easy_a',
-        'medium',
-        'hard',
-      ]);
-    });
+        expect(ids(topologicalSort(topics)), [
+          'easy_b',
+          'easy_a',
+          'medium',
+          'hard',
+        ]);
+      },
+    );
 
     test('зависимость, которой нет в наборе, считается выполненной', () {
       final topics = [

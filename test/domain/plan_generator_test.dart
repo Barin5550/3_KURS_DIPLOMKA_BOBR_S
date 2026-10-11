@@ -38,7 +38,11 @@ void main() {
     );
 
     expect(result.excludedTopics.map((t) => t.id), ['dart']);
-    expect(result.orderedTopics.map((t) => t.id), ['widgets', 'state', 'tests']);
+    expect(result.orderedTopics.map((t) => t.id), [
+      'widgets',
+      'state',
+      'tests',
+    ]);
     expect(result.sessions.any((s) => s.topicId == 'dart'), isFalse);
     expect(result.studyMinutes, 300);
   });

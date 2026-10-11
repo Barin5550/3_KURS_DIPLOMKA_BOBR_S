@@ -9,7 +9,10 @@ void main() {
   });
 
   test('хэш — 64 шестнадцатеричных символа SHA-256', () {
-    expect(hasher.hash('qwerty123', 'salt'), matches(RegExp(r'^[0-9a-f]{64}$')));
+    expect(
+      hasher.hash('qwerty123', 'salt'),
+      matches(RegExp(r'^[0-9a-f]{64}$')),
+    );
   });
 
   test('известное значение SHA-256 («abc»)', () {

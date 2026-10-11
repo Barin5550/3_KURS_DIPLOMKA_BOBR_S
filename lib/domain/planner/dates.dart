@@ -9,10 +9,11 @@ DateTime addDays(DateTime date, int days) =>
     DateTime(date.year, date.month, date.day + days);
 
 /// Количество календарных дней от [from] до [to] (может быть отрицательным).
-int daysBetween(DateTime from, DateTime to) =>
-    DateTime.utc(to.year, to.month, to.day)
-        .difference(DateTime.utc(from.year, from.month, from.day))
-        .inDays;
+int daysBetween(DateTime from, DateTime to) => DateTime.utc(
+  to.year,
+  to.month,
+  to.day,
+).difference(DateTime.utc(from.year, from.month, from.day)).inDays;
 
 bool isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;

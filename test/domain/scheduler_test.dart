@@ -136,10 +136,9 @@ void main() {
 
     test('без учебных дней бросает ошибку', () {
       expect(
-        () => scheduler.schedule(
-          [t('a', 60)],
-          ScheduleSettings(hoursPerWeek: 5, studyDays: {}, startDate: monday),
-        ),
+        () => scheduler.schedule([
+          t('a', 60),
+        ], ScheduleSettings(hoursPerWeek: 5, studyDays: {}, startDate: monday)),
         throwsArgumentError,
       );
     });

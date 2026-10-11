@@ -58,8 +58,8 @@ class NoteRepositoryImpl implements NoteRepository {
     required String title,
     required String body,
   }) async {
-    final updated =
-        await (_db.update(_db.notes)..where((n) => n.id.equals(id))).write(
+    final updated = await (_db.update(_db.notes)..where((n) => n.id.equals(id)))
+        .write(
           NotesCompanion(
             title: Value(title.trim()),
             body: Value(body.trim()),

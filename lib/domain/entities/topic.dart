@@ -76,8 +76,8 @@ class Topic {
     minutes: ((json['hours'] as num) * 60).round(),
     level: json['level'] as int? ?? 1,
     category: json['category'] as String,
-    prerequisites:
-        (json['prerequisites'] as List<dynamic>? ?? const []).cast<String>(),
+    prerequisites: (json['prerequisites'] as List<dynamic>? ?? const [])
+        .cast<String>(),
     resources: (json['resources'] as List<dynamic>? ?? const [])
         .map((e) => Resource.fromJson(e as Map<String, dynamic>))
         .toList(),

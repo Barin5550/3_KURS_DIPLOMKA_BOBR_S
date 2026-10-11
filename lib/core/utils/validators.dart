@@ -44,12 +44,13 @@ abstract final class Validators {
   static String? loginPassword(String? value) =>
       (value == null || value.isEmpty) ? 'Введите пароль' : null;
 
-  static String? Function(String?) confirmPassword(String Function() original) =>
-      (value) {
-        if (value == null || value.isEmpty) return 'Повторите пароль';
-        if (value != original()) return 'Пароли не совпадают';
-        return null;
-      };
+  static String? Function(String?) confirmPassword(
+    String Function() original,
+  ) => (value) {
+    if (value == null || value.isEmpty) return 'Повторите пароль';
+    if (value != original()) return 'Пароли не совпадают';
+    return null;
+  };
 
   static String? requiredText(String? value, {String field = 'поле'}) =>
       (value == null || value.trim().isEmpty) ? 'Заполните $field' : null;

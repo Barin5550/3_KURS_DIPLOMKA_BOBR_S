@@ -29,9 +29,7 @@ class PlanGenerator {
     Set<String> knownTopicIds = const {},
   }) {
     // Шаг 2.
-    final excluded = topics
-        .where((t) => knownTopicIds.contains(t.id))
-        .toList();
+    final excluded = topics.where((t) => knownTopicIds.contains(t.id)).toList();
     final remaining = topics
         .where((t) => !knownTopicIds.contains(t.id))
         .toList();

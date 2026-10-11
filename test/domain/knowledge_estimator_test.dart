@@ -2,8 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:marshrut/domain/entities/topic.dart';
 import 'package:marshrut/domain/planner/knowledge_estimator.dart';
 
-Topic t(String id, [List<String> deps = const []]) =>
-    Topic(id: id, title: id, minutes: 60, category: 'Тест', prerequisites: deps);
+Topic t(String id, [List<String> deps = const []]) => Topic(
+  id: id,
+  title: id,
+  minutes: 60,
+  category: 'Тест',
+  prerequisites: deps,
+);
 
 void main() {
   // dart → oop → widgets → riverpod

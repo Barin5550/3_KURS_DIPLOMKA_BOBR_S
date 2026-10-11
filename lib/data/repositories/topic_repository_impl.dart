@@ -130,11 +130,9 @@ class TopicRepositoryImpl implements TopicRepository {
 
   @override
   Future<void> toggleFavorite(int userId, String topicId) async {
-    final deleted =
-        await (_db.delete(_db.favorites)..where(
-              (f) => f.userId.equals(userId) & f.topicId.equals(topicId),
-            ))
-            .go();
+    final deleted = await (_db.delete(
+      _db.favorites,
+    )..where((f) => f.userId.equals(userId) & f.topicId.equals(topicId))).go();
     if (deleted == 0) {
       await _db
           .into(_db.favorites)
