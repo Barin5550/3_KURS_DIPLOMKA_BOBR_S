@@ -124,7 +124,10 @@ void main() {
     await settle(tester);
 
     await tap(tester, find.byKey(const Key('add_custom_topic')));
-    await tester.enterText(find.byKey(const Key('topic_title')), 'Анимации Rive');
+    await tester.enterText(
+      find.byKey(const Key('topic_title')),
+      'Анимации Rive',
+    );
     await tester.enterText(find.byKey(const Key('topic_hours')), '1,5');
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Категория'),
