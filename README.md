@@ -125,7 +125,7 @@ flutter test integration_test -d linux   # или -d windows, или на уст
   Splash → Регистрация → Вход → Главная → План → Профиль → Выход.
 - `integration_test` — тот же сценарий в настоящем окне приложения.
 
-Всего 94 модульных и виджет-теста и интеграционный тест. Тест-кейсы и найденные ошибки описаны
+Всего 97 модульных и виджет-тестов и интеграционный тест. Тест-кейсы и найденные ошибки описаны
 в [docs/coursework/testing.md](docs/coursework/testing.md).
 
 GitHub Actions ([.github/workflows/build.yml](.github/workflows/build.yml)) при каждой отправке кода
@@ -143,6 +143,13 @@ flutter test tool/screenshots/screenshots_test.dart
 ```
 
 Файлы появляются в `docs/coursework/screenshots/`.
+
+Для проверки перед сдачей каждый экран можно снять в семи вариантах (светлая и тёмная тема,
+маленький телефон, крупный шрифт, горизонтальная ориентация, окно компьютера):
+
+```bash
+flutter test tool/screenshots/qa_matrix_test.dart   # снимки в build/qa_screens/
+```
 
 ## Курсовая работа
 
