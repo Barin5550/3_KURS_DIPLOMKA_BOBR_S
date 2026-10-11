@@ -18,6 +18,9 @@ class ProfileScreen extends ConsumerWidget {
     final plans = ref.watch(plansProvider).value ?? const [];
     final completed = ref.watch(completedSessionsProvider).value ?? const [];
     final themeMode = ref.watch(themeModeProvider);
+    final remindersSupported = ref
+        .watch(reminderServiceProvider)
+        .supportsDailyReminders;
     final studiedMinutes = completed.fold<int>(0, (s, e) => s + e.minutes);
 
     return Scaffold(
@@ -141,20 +144,24 @@ class ProfileScreen extends ConsumerWidget {
                   secondary: const Icon(Icons.notifications_outlined),
                   title: const Text('Ежедневное напоминание'),
                   subtitle: Text(
-                    user.reminderEnabled
+                    !remindersSupported
+                        ? 'Доступно в версии для Android и iOS'
+                        : user.reminderEnabled
                         ? 'Каждый день в ${_time(user.reminderHour, user.reminderMinute)}'
                         : 'Выключено',
                   ),
-                  value: user.reminderEnabled,
-                  onChanged: (on) => _setReminder(
-                    context,
-                    ref,
-                    enabled: on,
-                    hour: user.reminderHour,
-                    minute: user.reminderMinute,
-                  ),
+                  value: remindersSupported && user.reminderEnabled,
+                  onChanged: remindersSupported
+                      ? (on) => _setReminder(
+                          context,
+                          ref,
+                          enabled: on,
+                          hour: user.reminderHour,
+                          minute: user.reminderMinute,
+                        )
+                      : null,
                 ),
-                if (user.reminderEnabled)
+                if (remindersSupported && user.reminderEnabled)
                   ListTile(
                     leading: const SizedBox(width: 24),
                     title: const Text('Время напоминания'),

@@ -11,6 +11,7 @@ import 'package:marshrut/app.dart';
 import 'package:marshrut/data/datasources/catalog_repository_impl.dart';
 import 'package:marshrut/data/db/app_database.dart';
 import 'package:marshrut/data/services/reminder_service_impl.dart';
+import 'package:marshrut/domain/repositories/repositories.dart';
 import 'package:marshrut/presentation/providers/providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,6 +34,7 @@ Future<List<Override>> testOverrides({
   AppDatabase? db,
   Map<String, Object> prefs = const {},
   DateTime Function()? clock,
+  ReminderService? reminders,
 }) async {
   await initializeDateFormatting('ru');
   SharedPreferences.setMockInitialValues(prefs);
@@ -43,7 +45,9 @@ Future<List<Override>> testOverrides({
   return [
     databaseProvider.overrideWithValue(db ?? memoryDatabase()),
     sharedPreferencesProvider.overrideWithValue(sp),
-    reminderServiceProvider.overrideWithValue(NoopReminderService()),
+    reminderServiceProvider.overrideWithValue(
+      reminders ?? NoopReminderService(),
+    ),
     catalogRepositoryProvider.overrideWithValue(catalog),
     clockProvider.overrideWithValue(clock ?? () => testToday),
   ];
@@ -54,15 +58,16 @@ Future<void> pumpTestApp(
   WidgetTester tester, {
   AppDatabase? db,
   Map<String, Object> prefs = const {},
+  ReminderService? reminders,
 }) async {
   tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 2.75;
   addTearDown(tester.view.reset);
-  final overrides = await tester.runAsync(
-    () => testOverrides(db: db, prefs: prefs),
+  final base = await tester.runAsync(
+    () => testOverrides(db: db, prefs: prefs, reminders: reminders),
   );
   await tester.pumpWidget(
-    ProviderScope(overrides: overrides!, child: const MarshrutApp()),
+    ProviderScope(overrides: base!, child: const MarshrutApp()),
   );
 }
 

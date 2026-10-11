@@ -160,6 +160,9 @@ abstract interface class PomodoroRepository {
 
 /// Локальные уведомления (реализация зависит от платформы).
 abstract interface class ReminderService {
+  /// Поддерживает ли платформа ежедневные напоминания по расписанию.
+  bool get supportsDailyReminders;
+
   Future<void> init();
   Future<bool> requestPermission();
   Future<void> scheduleDailyReminder({required int hour, required int minute});

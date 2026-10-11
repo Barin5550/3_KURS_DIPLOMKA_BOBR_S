@@ -67,6 +67,8 @@ void main() {
           databaseProvider.overrideWithValue(db),
           sharedPreferencesProvider.overrideWithValue(prefs),
           reminderServiceProvider.overrideWithValue(NoopReminderService()),
+          // Фиксированный понедельник: в учебный день на главной есть занятия.
+          clockProvider.overrideWithValue(() => DateTime(2026, 10, 12, 10)),
         ],
         child: const MarshrutApp(),
       ),
@@ -111,6 +113,9 @@ void main() {
     await tap(tester, find.text('Выйти').last);
     await waitFor(tester, find.text('С возвращением!'));
 
+    // Убираем дерево виджетов, чтобы закрыть подписки на базу.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 300));
     await db.close();
   });
 }

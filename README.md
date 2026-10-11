@@ -1,17 +1,121 @@
-# marshrut
+# Маршрут — персональный план обучения
 
-Маршрут — автоматическое формирование персонального плана обучения
+Курсовой проект по ПМ07 «Разработка мобильных приложений».
+Тема: «Создание приложения для автоматического формирования персонального плана обучения».
 
-## Getting Started
+Пользователь выбирает направление (Flutter, Python, английский язык, алгоритмы),
+проходит диагностический тест и указывает, сколько часов в неделю готов заниматься,
+в какие дни и к какому сроку. Приложение строит план по дням и перестраивает его,
+если пользователь отстал.
 
-This project is a starting point for a Flutter application.
+Всё работает офлайн: облачные сервисы, ключи и регистрация на сторонних сайтах не нужны.
 
-A few resources to get you started if this is your first Flutter project:
+## Возможности
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- Splash, регистрация с проверкой уникальности email, вход, автовход, выход.
+- Онбординг: направление → тест → расписание → предпросмотр плана.
+- Алгоритм: граф тем → исключение известных тем → сортировка Кана →
+  раскладка по дням с лимитом часов → проверка дедлайна → интервальные повторения (+1, +3, +7 дней).
+- Перепланирование при пропусках, несколько планов, свои темы, заметки, избранное.
+- Pomodoro-таймер, статистика с графиками, история занятий.
+- Ежедневные напоминания (Android, iOS), светлая и тёмная темы в тёмно-синем и оранжевом цветах.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Стек
+
+| Задача | Решение |
+|---|---|
+| Язык и UI | Dart, Flutter, Material 3 |
+| Архитектура | Clean Architecture: `domain` / `data` / `presentation` |
+| Состояние | Riverpod |
+| База данных | drift (SQLite) |
+| Навигация | go_router с redirect для закрытых экранов |
+| Пароли | SHA-256 с солью (пакет crypto) |
+| Графики | fl_chart |
+| Уведомления | flutter_local_notifications |
+
+## Запуск
+
+Нужен установленный Flutter SDK (проект собирался на Flutter 3.47.7, Dart 3.13.5).
+
+```bash
+flutter pub get
+flutter run
+```
+
+### Android
+
+Подключите телефон с включённой отладкой по USB или запустите эмулятор из Android Studio, затем:
+
+```bash
+flutter run                 # отладочный запуск
+flutter build apk --release # готовый APK: build/app/outputs/flutter-apk/app-release.apk
+```
+
+### Windows
+
+Требования (см. [документацию Flutter для Windows](https://docs.flutter.dev/get-started/install/windows/desktop)):
+
+1. Windows 10 или 11, 64 бит.
+2. Flutter SDK и Git.
+3. Visual Studio 2022 (именно Visual Studio, не VS Code) с набором
+   «Разработка классических приложений на C++» (Desktop development with C++).
+4. Режим разработчика Windows: Параметры → Конфиденциальность и защита →
+   Для разработчиков → «Режим разработчика». Без него Flutter не соберёт проект с плагинами.
+
+Проверка окружения и запуск:
+
+```powershell
+flutter doctor
+flutter pub get
+flutter run -d windows
+```
+
+Сборка готовой программы:
+
+```powershell
+flutter build windows --release
+```
+
+Программа появится в папке `build\windows\x64\runner\Release\`.
+Запускается файл `marshrut.exe`; переносить нужно всю папку целиком, рядом с exe лежат нужные DLL и папка `data`.
+
+База данных хранится в служебной папке пользователя (`%APPDATA%`), а не рядом с программой.
+В Windows доступны мгновенные уведомления (окончание «помидора»); ежедневное напоминание
+работает в версии для Android и iOS, потому что плагин уведомлений не умеет повторять
+уведомление каждый день в Windows без установщика MSIX.
+
+### Linux
+
+Нужны пакеты для сборки GTK-приложений (`clang`, `cmake`, `ninja-build`, `pkg-config`, `libgtk-3-dev`):
+
+```bash
+flutter run -d linux
+```
+
+## Тесты
+
+```bash
+flutter analyze
+flutter test                         # юнит- и виджет-тесты
+flutter test integration_test -d linux   # или -d windows, или на устройстве Android
+```
+
+- `test/domain` — алгоритм: сортировка Кана, оценка знаний, раскладка, генератор, перепланирование.
+- `test/core` — валидаторы, хэширование паролей, правило доступа к экранам.
+- `test/data` — репозитории на SQLite в памяти и проверка JSON-каталога.
+- `test/presentation` — экраны входа и регистрации, профиль и сквозной сценарий
+  Splash → Регистрация → Вход → Главная → План → Профиль → Выход.
+- `integration_test` — тот же сценарий в настоящем окне приложения.
+
+## Структура
+
+```
+lib/
+  core/          тема, роутер, валидаторы, хэширование, форматирование
+  domain/        сущности, алгоритм планирования, интерфейсы репозиториев, сценарии
+  data/          база drift, репозитории, каталог тем, уведомления
+  presentation/  провайдеры Riverpod, экраны и виджеты
+assets/catalog/  4 направления, 75 тем в JSON
+docs/concept/    материалы защиты концепции (слайды, user flow, вайрфреймы, вопросы)
+docs/coursework/ текст курсовой работы
+```

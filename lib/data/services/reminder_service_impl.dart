@@ -9,6 +9,11 @@ import '../../domain/repositories/repositories.dart';
 ///
 /// Время напоминания переводится в UTC, поэтому дополнительный пакет для
 /// определения часового пояса устройства не нужен.
+///
+/// На Android и iOS работают и ежедневные напоминания, и мгновенные
+/// уведомления. В Windows плагин не умеет повторять уведомление каждый день
+/// и отменять его в приложении без MSIX-установщика, поэтому там доступны
+/// только мгновенные уведомления (например, окончание «помидора»).
 class LocalReminderService implements ReminderService {
   LocalReminderService([FlutterLocalNotificationsPlugin? plugin])
     : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
@@ -28,16 +33,23 @@ class LocalReminderService implements ReminderService {
       priority: Priority.high,
     ),
     iOS: DarwinNotificationDetails(),
+    windows: WindowsNotificationDetails(),
   );
 
-  bool get _supported =>
+  bool get _isMobile =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
+  bool get _isWindows =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+
+  @override
+  bool get supportsDailyReminders => _isMobile;
+
   @override
   Future<void> init() async {
-    if (_initialized || !_supported) return;
+    if (_initialized || !(_isMobile || _isWindows)) return;
     tzdata.initializeTimeZones();
     await _plugin.initialize(
       settings: const InitializationSettings(
@@ -47,6 +59,11 @@ class LocalReminderService implements ReminderService {
           requestBadgePermission: false,
           requestSoundPermission: false,
         ),
+        windows: WindowsInitializationSettings(
+          appName: 'Маршрут',
+          appUserModelId: 'Barin.Marshrut',
+          guid: 'ae2dc08a-b972-4caf-92da-cfa489d2bc16',
+        ),
       ),
     );
     _initialized = true;
@@ -54,7 +71,7 @@ class LocalReminderService implements ReminderService {
 
   @override
   Future<bool> requestPermission() async {
-    if (!_supported) return false;
+    if (!supportsDailyReminders) return false;
     await init();
     final android = _plugin
         .resolvePlatformSpecificImplementation<
@@ -75,7 +92,7 @@ class LocalReminderService implements ReminderService {
     required int hour,
     required int minute,
   }) async {
-    if (!_supported) return;
+    if (!supportsDailyReminders) return;
     await init();
     final now = DateTime.now();
     var next = DateTime(now.year, now.month, now.day, hour, minute);
@@ -93,26 +110,36 @@ class LocalReminderService implements ReminderService {
 
   @override
   Future<void> cancelDailyReminder() async {
-    if (!_supported) return;
+    if (!supportsDailyReminders) return;
     await init();
     await _plugin.cancel(id: _dailyId);
   }
 
   @override
   Future<void> showNow({required String title, required String body}) async {
-    if (!_supported) return;
-    await init();
-    await _plugin.show(
-      id: _instantId,
-      title: title,
-      body: body,
-      notificationDetails: _details,
-    );
+    if (!(_isMobile || _isWindows)) return;
+    try {
+      await init();
+      await _plugin.show(
+        id: _instantId,
+        title: title,
+        body: body,
+        notificationDetails: _details,
+      );
+    } on Object catch (e) {
+      // Уведомление — дополнительная функция: сбой платформы не роняет экран.
+      debugPrint('Уведомление не показано: $e');
+    }
   }
 }
 
 /// Пустая реализация для тестов и платформ без уведомлений.
 class NoopReminderService implements ReminderService {
+  NoopReminderService({this.supportsDailyReminders = true});
+
+  @override
+  final bool supportsDailyReminders;
+
   final List<String> log = [];
 
   @override

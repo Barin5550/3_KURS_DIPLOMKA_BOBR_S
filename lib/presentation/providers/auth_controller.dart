@@ -76,7 +76,11 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> logout() async {
     await ref.read(sessionStorageProvider).saveCurrentUserId(null);
-    await ref.read(reminderServiceProvider).cancelDailyReminder();
+    try {
+      await ref.read(reminderServiceProvider).cancelDailyReminder();
+    } on Exception {
+      // Выход не должен зависеть от работы уведомлений.
+    }
     state = const AuthState.unauthenticated();
   }
 
