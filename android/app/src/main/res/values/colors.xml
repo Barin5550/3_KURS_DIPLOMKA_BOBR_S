@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Фон адаптивной иконки и экрана запуска: тёмно-синий цвет приложения. -->
+    <color name="ic_launcher_background">#1A3A8F</color>
+    <color name="launch_background">#1A3A8F</color>
+</resources>

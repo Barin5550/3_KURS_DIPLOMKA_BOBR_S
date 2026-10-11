@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../core/theme/app_theme.dart';
 import '../../domain/repositories/repositories.dart';
 
 /// Ежедневные напоминания через flutter_local_notifications.
@@ -31,6 +32,9 @@ class LocalReminderService implements ReminderService {
       channelDescription: 'Ежедневное напоминание о плане обучения',
       importance: Importance.high,
       priority: Priority.high,
+      // Белый силуэт логотипа в строке состояния и оранжевый акцент.
+      icon: 'ic_stat_marshrut',
+      color: AppColors.orange,
     ),
     iOS: DarwinNotificationDetails(),
     windows: WindowsNotificationDetails(),
@@ -53,7 +57,7 @@ class LocalReminderService implements ReminderService {
     tzdata.initializeTimeZones();
     await _plugin.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('ic_stat_marshrut'),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,

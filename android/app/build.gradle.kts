@@ -10,12 +10,14 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Нужен flutter_local_notifications для планирования уведомлений
+        // на старых версиях Android (java.time через desugaring).
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.barin.marshrut"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -31,8 +33,9 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Учебный проект: релизная сборка подписывается отладочным ключом,
+            // чтобы APK можно было сразу установить на телефон. Для публикации
+            // в магазине нужен собственный ключ (keystore).
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -46,4 +49,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

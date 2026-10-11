@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Значок уведомлений плагин находит по имени во время работы, поэтому
+     R8 не должен удалять его из релизной сборки. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_marshrut" />
