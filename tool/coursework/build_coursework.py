@@ -71,6 +71,11 @@ CHECK = "[ПРОВЕРИТЬ"
 STUDENT = "Баринов Н.\u00a0В."
 GROUP = "ПО2410"
 SUPERVISOR = "Синтиков Е.\u00a0К."
+COLLEGE = "Колледж Astana IT University"
+# На сайте колледжа (astanait.edu.kz/ru/college) ведомство не указано;
+# колледжи Казахстана относятся к Министерству просвещения.
+MINISTRY = "Министерство просвещения Республики Казахстан [ПРОВЕРИТЬ]"
+CITY_YEAR = "Астана 2026"
 
 
 # ---------------------------------------------------------------------------
@@ -643,8 +648,8 @@ def title_page(doc):
             run.font.highlight_color = WD_COLOR_INDEX.YELLOW
         return p
 
-    add("[ПРОВЕРИТЬ: название органа управления образованием]")
-    add("[ПРОВЕРИТЬ: полное название колледжа]")
+    add(MINISTRY)
+    add(COLLEGE)
     add("КУРСОВОЙ ПРОЕКТ", size=16, bold=True, before=150)
     add("по профессиональному модулю ПМ.07 «Разработка мобильных приложений»")
     add("на тему:", before=24)
@@ -653,7 +658,7 @@ def title_page(doc):
     add(STUDENT, align=WD_ALIGN_PARAGRAPH.RIGHT)
     add(f"Руководитель: {SUPERVISOR}", align=WD_ALIGN_PARAGRAPH.RIGHT, before=12)
     add("Оценка: ______________", align=WD_ALIGN_PARAGRAPH.RIGHT, before=12)
-    last = add("[ПРОВЕРИТЬ: город, год]", before=110)
+    last = add(CITY_YEAR, before=110)
     last.add_run().add_break(WD_BREAK.PAGE)
 
     p = first.insert_paragraph_before()
