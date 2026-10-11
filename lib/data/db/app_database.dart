@@ -7,7 +7,8 @@ part 'app_database.g.dart';
 // Сгенерированный файл app_database.g.dart хранится в репозитории, поэтому
 // для запуска приложения генерация не нужна.
 
-/// Пользователи. Пароль хранится только в виде хэша SHA-256 с солью.
+/// Пользователи. Пароль хранится только в виде хэша PBKDF2-HMAC-SHA256 с солью
+/// (записи версии 1 семестра с хэшем SHA-256 пересчитываются при входе).
 @DataClassName('UserRow')
 class Users extends Table {
   IntColumn get id => integer().autoIncrement()();

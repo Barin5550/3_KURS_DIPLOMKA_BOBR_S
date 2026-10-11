@@ -304,6 +304,18 @@ void main() {
     await go('/stats');
     await shot('24_landscape_stats');
 
+    // Удаление аккаунта: диалог с ошибкой неверного пароля.
+    await setSize(phoneSize);
+    await go('/profile');
+    await tap(find.byKey(const Key('delete_account_button')));
+    await tester.enterText(
+      find.byKey(const Key('delete_password_field')),
+      'wrong123',
+    );
+    await tap(find.byKey(const Key('delete_account_confirm')));
+    await shot('25_delete_account');
+    await tap(find.text('Отмена'));
+
     await tester.pumpWidget(const SizedBox());
     await settle(tester);
     await tester.runAsync(db.close);
