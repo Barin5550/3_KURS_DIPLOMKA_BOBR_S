@@ -215,10 +215,19 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
             Text(
               todayCount == 0
                   ? 'Сегодня помидоров пока нет'
-                  : 'Сегодня: ${'🍅' * math.min(todayCount, 12)} '
-                        '(${Fmt.count(todayCount, 'помидор', 'помидора', 'помидоров')})',
+                  : 'Сегодня: ${Fmt.count(todayCount, 'помидор', 'помидора', 'помидоров')}',
               textAlign: TextAlign.center,
             ),
+            if (todayCount > 0) ...[
+              const SizedBox(height: 4),
+              Wrap(
+                alignment: WrapAlignment.center,
+                children: [
+                  for (var i = 0; i < math.min(todayCount, 12); i++)
+                    const Icon(Icons.timer, size: 20, color: AppColors.orange),
+                ],
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
               'Техника Pomodoro: работайте без отвлечений до сигнала таймера, '

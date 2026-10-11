@@ -22,7 +22,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Привет, ${user?.name.split(' ').first ?? ''} 👋'),
+        title: Text('Привет, ${user?.name.split(' ').first ?? ''}!'),
         actions: [
           IconButton(
             tooltip: 'Pomodoro',
@@ -107,7 +107,7 @@ class _HomeBody extends ConsumerWidget {
                   title: const Text('Сегодня занятий нет'),
                   subtitle: Text(
                     next == null
-                        ? 'Все занятия плана выполнены 🎉'
+                        ? 'Все занятия плана выполнены!'
                         : 'Следующее: ${Fmt.dayWithWeekday(next.date)}',
                   ),
                 ),
@@ -209,9 +209,19 @@ class _ProgressCard extends StatelessWidget {
                   '${Fmt.hours(progress.totalStudyMinutes / 60)} ч',
                   style: TextStyle(color: white70),
                 ),
-                Text(
-                  'Серия: ${Fmt.count(streak, 'день', 'дня', 'дней')} 🔥',
-                  style: TextStyle(color: white70),
+                Row(
+                  children: [
+                    Text(
+                      'Серия: ${Fmt.count(streak, 'день', 'дня', 'дней')}',
+                      style: TextStyle(color: white70),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.local_fire_department,
+                      size: 16,
+                      color: streak > 0 ? AppColors.orangeLight : white70,
+                    ),
+                  ],
                 ),
                 if (deadline != null)
                   Text(
@@ -282,7 +292,11 @@ class _MissedBannerState extends ConsumerState<_MissedBanner> {
             ),
             FilledButton(
               key: const Key('replan_button'),
-              style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
               onPressed: _busy ? null : _replan,
               child: const Text('Перестроить'),
             ),

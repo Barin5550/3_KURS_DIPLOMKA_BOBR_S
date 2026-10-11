@@ -72,7 +72,7 @@ void main() {
       'flutter2026',
     );
     await tapAndSettle(tester, find.byKey(const Key('login_submit')));
-    expect(find.text('Привет, Алия 👋'), findsOneWidget);
+    expect(find.text('Привет, Алия!'), findsOneWidget);
     expect(find.byKey(const Key('home_empty')), findsOneWidget);
 
     // Основной раздел: создание плана.
@@ -135,7 +135,7 @@ void main() {
       'flutter2026',
     );
     await tapAndSettle(tester, find.byKey(const Key('login_submit')));
-    expect(find.text('Привет, Алия 👋'), findsOneWidget);
+    expect(find.text('Привет, Алия!'), findsOneWidget);
     expect(find.byKey(const Key('home_empty')), findsNothing);
 
     // Освобождаем таймеры drift перед завершением теста.

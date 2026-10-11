@@ -32,10 +32,10 @@ class TopicsScreen extends ConsumerStatefulWidget {
 class _TopicsScreenState extends ConsumerState<TopicsScreen> {
   final _search = TextEditingController();
 
-  /// `null` — все темы, `★` — избранное, `мои` — свои, иначе — категория.
+  /// `null` — все темы, `избранное` и `мои` — особые фильтры, иначе — категория.
   String? _chip;
 
-  static const _favorites = '★';
+  static const _favorites = 'избранное';
   static const _mine = 'мои';
 
   @override
@@ -138,7 +138,7 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
           child: Row(
             children: [
               _chipButton('Все', null),
-              _chipButton('★ Избранное', _favorites),
+              _chipButton('Избранное', _favorites, icon: Icons.star_rounded),
               _chipButton('Мои', _mine),
               for (final c in categories) _chipButton(c, c),
             ],
@@ -193,9 +193,10 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
     );
   }
 
-  Widget _chipButton(String label, String? value) => Padding(
+  Widget _chipButton(String label, String? value, {IconData? icon}) => Padding(
     padding: const EdgeInsets.only(right: 8),
     child: ChoiceChip(
+      avatar: icon == null ? null : Icon(icon, size: 18),
       label: Text(label),
       selected: _chip == value,
       onSelected: (_) => setState(() => _chip = value),
@@ -216,38 +217,47 @@ class _DirectionPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        children: [
-          for (final d in directions)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                key: Key('pick_${d.id}'),
-                avatar: Icon(
-                  directionIcon(d.icon),
-                  size: 18,
-                  color: d.id == selected.id
-                      ? AppColors.orange
-                      : Colors.white70,
+    // Подложка чипа рисуется цветом canvasColor (белым) — делаем её
+    // прозрачной, чтобы полупрозрачные чипы были видны на синей панели.
+    return Theme(
+      data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+      child: SizedBox(
+        height: 56,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          children: [
+            for (final d in directions)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  key: Key('pick_${d.id}'),
+                  avatar: Icon(
+                    directionIcon(d.icon),
+                    size: 18,
+                    color: d.id == selected.id
+                        ? AppColors.orange
+                        : Colors.white70,
+                  ),
+                  label: Text(d.title),
+                  selected: d.id == selected.id,
+                  showCheckmark: false,
+                  labelStyle: TextStyle(
+                    color: d.id == selected.id ? AppColors.navy : Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  // Material 3: цвет чипа задаётся по состояниям через color.
+                  color: WidgetStateProperty.resolveWith(
+                    (states) => states.contains(WidgetState.selected)
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: .12),
+                  ),
+                  side: BorderSide.none,
+                  onSelected: (_) => onSelected(d),
                 ),
-                label: Text(d.title),
-                selected: d.id == selected.id,
-                showCheckmark: false,
-                labelStyle: TextStyle(
-                  color: d.id == selected.id ? AppColors.navy : Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-                selectedColor: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: .12),
-                side: BorderSide.none,
-                onSelected: (_) => onSelected(d),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

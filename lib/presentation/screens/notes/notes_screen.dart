@@ -87,7 +87,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                       title: Text(n.title),
                       subtitle: Text(
                         [
-                          if (n.topicTitle != null) '📌 ${n.topicTitle}',
+                          if (n.topicTitle != null) 'Тема: ${n.topicTitle}',
                           n.body,
                         ].join('\n'),
                         maxLines: 3,

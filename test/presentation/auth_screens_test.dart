@@ -97,7 +97,7 @@ void main() {
   ) async {
     final id = await tester.runAsync(seedUser);
     await start(tester, prefs: {'current_user_id': id!});
-    expect(find.text('Привет, Ира 👋'), findsOneWidget);
+    expect(find.text('Привет, Ира!'), findsOneWidget);
     expect(find.text('С возвращением!'), findsNothing);
     await finish(tester);
   });

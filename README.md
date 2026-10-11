@@ -107,6 +107,17 @@ flutter test integration_test -d linux   # или -d windows, или на уст
   Splash → Регистрация → Вход → Главная → План → Профиль → Выход.
 - `integration_test` — тот же сценарий в настоящем окне приложения.
 
+## Скриншоты
+
+Скриншоты всех экранов для отчёта генерируются автоматически: приложение
+запускается с тестовыми данными и настоящими шрифтами Roboto.
+
+```bash
+flutter test tool/screenshots/screenshots_test.dart
+```
+
+Файлы появляются в `docs/coursework/screenshots/`.
+
 ## Структура
 
 ```

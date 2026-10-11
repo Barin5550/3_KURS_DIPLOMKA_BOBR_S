@@ -66,6 +66,9 @@ abstract final class AppTheme {
   static ThemeData _build(ColorScheme scheme) {
     final isDark = scheme.brightness == Brightness.dark;
     final radius = BorderRadius.circular(16);
+    // Базовая типографика платформы (Roboto на Android, Segoe UI в Windows):
+    // от неё наследуются стили AppBar, кнопок и навигации.
+    final text = ThemeData(useMaterial3: true, colorScheme: scheme).textTheme;
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -75,7 +78,7 @@ abstract final class AppTheme {
         foregroundColor: Colors.white,
         centerTitle: false,
         elevation: 0,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: text.titleLarge!.copyWith(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: Colors.white,
@@ -110,7 +113,10 @@ abstract final class AppTheme {
           backgroundColor: AppColors.orange,
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(52),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: text.labelLarge!.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
           shape: RoundedRectangleBorder(borderRadius: radius),
         ),
       ),
@@ -137,7 +143,7 @@ abstract final class AppTheme {
         backgroundColor: isDark ? AppColors.navyDeep : Colors.white,
         indicatorColor: AppColors.orange.withValues(alpha: isDark ? .35 : .18),
         labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => TextStyle(
+          (states) => text.labelMedium!.copyWith(
             fontSize: 12,
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w600
@@ -148,11 +154,15 @@ abstract final class AppTheme {
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: isDark ? AppColors.navyDeep : Colors.white,
         indicatorColor: AppColors.orange.withValues(alpha: isDark ? .35 : .18),
-        selectedLabelTextStyle: const TextStyle(
+        selectedLabelTextStyle: text.labelMedium!.copyWith(
           fontSize: 12,
           fontWeight: FontWeight.w600,
+          color: isDark ? AppColors.orangeLight : AppColors.navy,
         ),
-        unselectedLabelTextStyle: const TextStyle(fontSize: 12),
+        unselectedLabelTextStyle: text.labelMedium!.copyWith(
+          fontSize: 12,
+          color: scheme.onSurfaceVariant,
+        ),
       ),
       chipTheme: ChipThemeData(
         selectedColor: AppColors.orange.withValues(alpha: isDark ? .35 : .18),
