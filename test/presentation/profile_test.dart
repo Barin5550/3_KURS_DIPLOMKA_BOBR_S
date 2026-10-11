@@ -69,12 +69,15 @@ void main() {
     tester,
   ) async {
     await openProfile(tester, NoopReminderService());
+    final deleteButton = find.byKey(const Key('delete_account_button'));
     await tester.scrollUntilVisible(
-      find.byKey(const Key('delete_account_button')),
+      deleteButton,
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.tap(find.byKey(const Key('delete_account_button')));
+    await tester.ensureVisible(deleteButton);
+    await tester.pump();
+    await tester.tap(deleteButton);
     await settle(tester);
     expect(find.text('Удалить аккаунт?'), findsOneWidget);
 

@@ -85,10 +85,14 @@ class MainShell extends StatelessWidget {
     }
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        destinations: destinations,
-        onDestinationSelected: _select,
+      // Подписи вкладок не увеличиваются вместе с системным шрифтом:
+      // иначе «Статистика» не помещается и переносится по буквам.
+      bottomNavigationBar: MediaQuery.withNoTextScaling(
+        child: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          destinations: destinations,
+          onDestinationSelected: _select,
+        ),
       ),
     );
   }

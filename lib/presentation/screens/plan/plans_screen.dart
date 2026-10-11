@@ -131,7 +131,7 @@ class _PlanCard extends ConsumerWidget {
                 progress == null
                     ? ''
                     : '${(progress.ratio * 100).round()}% · '
-                          '${progress.doneSessions} из ${progress.totalSessions} занятий',
+                          '${progress.doneSessions} из ${progress.totalSessions} ${Fmt.plural(progress.totalSessions, 'занятия', 'занятий', 'занятий')}',
                 style: theme.textTheme.bodySmall,
               ),
             ],

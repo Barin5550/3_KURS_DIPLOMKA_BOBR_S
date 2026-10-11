@@ -160,6 +160,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) {
           final q = state.uri.queryParameters;
           return NoteEditScreen(
+            // Новый ключ для каждой заметки: иначе при переходе между
+            // заметками сохранялось бы состояние предыдущей.
+            key: ValueKey(state.uri.toString()),
             noteId: int.tryParse(q['id'] ?? ''),
             topicId: q['topicId'],
             topicTitle: q['topicTitle'],

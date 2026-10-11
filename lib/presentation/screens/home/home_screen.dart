@@ -290,6 +290,7 @@ class _MissedBannerState extends ConsumerState<_MissedBanner> {
                 'Пропущено ${Fmt.count(widget.missed, 'занятие', 'занятия', 'занятий')}',
               ),
             ),
+            const SizedBox(width: 8),
             FilledButton(
               key: const Key('replan_button'),
               style: FilledButton.styleFrom(

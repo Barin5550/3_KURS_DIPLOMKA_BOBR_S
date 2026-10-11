@@ -198,7 +198,10 @@ class _CustomTopicScreenState extends ConsumerState<CustomTopicScreen> {
                         children: [
                           for (final Topic t in direction.topics)
                             FilterChip(
-                              label: Text(t.title),
+                              label: Text(
+                                t.title,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                               selected: _prerequisites.contains(t.id),
                               onSelected: (on) => setState(
                                 () => on

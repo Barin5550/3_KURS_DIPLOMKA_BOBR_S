@@ -39,6 +39,8 @@ void main() {
       );
     }
     await tester.ensureVisible(finder);
+    // Без кадра после прокрутки tap() берёт старые координаты.
+    await tester.pump();
     await tester.tap(finder);
     await settle(tester);
   }

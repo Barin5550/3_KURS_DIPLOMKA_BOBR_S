@@ -32,6 +32,15 @@ abstract final class Fmt {
     return text.replaceAll('.', ',');
   }
 
+  /// Слово «час» после числа часов: 1 час, 2,5 часа, 23,8 часа, 5 часов.
+  /// Дробное число согласуется как «2–4» (родительный падеж единственного
+  /// числа).
+  static String hoursWord(num hours) {
+    final rounded = (hours * 10).round() / 10;
+    if (rounded != rounded.roundToDouble()) return 'часа';
+    return plural(rounded.toInt(), 'час', 'часа', 'часов');
+  }
+
   /// Склонение: plural(5, 'тема', 'темы', 'тем') → «тем».
   static String plural(int n, String one, String few, String many) {
     final mod10 = n % 10;

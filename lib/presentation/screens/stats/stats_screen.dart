@@ -43,26 +43,40 @@ class StatsScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Row(
-                  children: [
-                    _Tile(
-                      icon: Icons.schedule,
-                      value: Fmt.hours(minutes / 60),
-                      label: 'часов изучено',
-                    ),
-                    const SizedBox(width: 8),
-                    _Tile(
-                      icon: Icons.task_alt,
-                      value: '${completed.length}',
-                      label: 'занятий',
-                    ),
-                    const SizedBox(width: 8),
-                    _Tile(
-                      icon: Icons.timer,
-                      value: '${pomodoros.length}',
-                      label: 'помидоров · ${Fmt.minutes(focus)}',
-                    ),
-                  ],
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _Tile(
+                        icon: Icons.schedule,
+                        value: Fmt.hours(minutes / 60),
+                        label: '${Fmt.hoursWord(minutes / 60)} учёбы',
+                      ),
+                      const SizedBox(width: 8),
+                      _Tile(
+                        icon: Icons.task_alt,
+                        value: '${completed.length}',
+                        label: Fmt.plural(
+                          completed.length,
+                          'занятие',
+                          'занятия',
+                          'занятий',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _Tile(
+                        icon: Icons.timer,
+                        value: '${pomodoros.length}',
+                        label: Fmt.plural(
+                          pomodoros.length,
+                          'помидор',
+                          'помидора',
+                          'помидоров',
+                        ),
+                        caption: focus == 0 ? null : Fmt.minutes(focus),
+                      ),
+                    ],
+                  ),
                 ),
                 const SectionTitle('Часы по неделям'),
                 Card(
@@ -134,11 +148,17 @@ class StatsScreen extends ConsumerWidget {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.icon, required this.value, required this.label});
+  const _Tile({
+    required this.icon,
+    required this.value,
+    required this.label,
+    this.caption,
+  });
 
   final IconData icon;
   final String value;
   final String label;
+  final String? caption;
 
   @override
   Widget build(BuildContext context) => Expanded(
@@ -156,6 +176,13 @@ class _Tile extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             Text(label, style: Theme.of(context).textTheme.bodySmall),
+            if (caption != null)
+              Text(
+                caption!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
           ],
         ),
       ),
@@ -189,8 +216,22 @@ class _WeeklyChart extends StatelessWidget {
         }
       }
     }
-    final maxY = hours.fold<double>(1, (m, h) => h > m ? h : m) * 1.25;
+    // Верх шкалы — ближайшее «круглое» значение, чтобы подписи оси
+    // были целыми: 0, 2, 4, 6, 8, а не 0, 5, 7,8.
+    final peak = hours.fold<double>(1, (m, h) => h > m ? h : m) * 1.15;
+    final interval = peak <= 5
+        ? 1.0
+        : peak <= 10
+        ? 2.0
+        : peak <= 25
+        ? 5.0
+        : 10.0;
+    final maxY = (peak / interval).ceil() * interval;
     final labelStyle = Theme.of(context).textTheme.bodySmall;
+    // В тёмной теме тёмно-синие столбцы почти не видны на фоне карточки.
+    final barColor = Theme.of(context).brightness == Brightness.dark
+        ? _CategoryChart.darkNavy
+        : AppColors.navy;
 
     return BarChart(
       BarChartData(
@@ -198,6 +239,7 @@ class _WeeklyChart extends StatelessWidget {
         alignment: BarChartAlignment.spaceAround,
         gridData: FlGridData(
           drawVerticalLine: false,
+          horizontalInterval: interval,
           getDrawingHorizontalLine: (_) => FlLine(
             color: Theme.of(context).colorScheme.outlineVariant,
             strokeWidth: .5,
@@ -219,6 +261,7 @@ class _WeeklyChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 32,
+              interval: interval,
               getTitlesWidget: (value, meta) => SideTitleWidget(
                 meta: meta,
                 child: Text(Fmt.hours(value), style: labelStyle),
@@ -228,6 +271,7 @@ class _WeeklyChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
+              reservedSize: 28,
               getTitlesWidget: (value, meta) => SideTitleWidget(
                 meta: meta,
                 child: Text(
@@ -246,7 +290,7 @@ class _WeeklyChart extends StatelessWidget {
                 BarChartRodData(
                   toY: hours[i],
                   width: 22,
-                  color: i == weeks - 1 ? AppColors.orange : AppColors.navy,
+                  color: i == weeks - 1 ? AppColors.orange : barColor,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(6),
                   ),
@@ -264,6 +308,9 @@ class _CategoryChart extends StatelessWidget {
   const _CategoryChart({required this.sessions});
 
   final List<StudySession> sessions;
+
+  /// Замена тёмно-синего для тёмной темы.
+  static const darkNavy = Color(0xFF9DB4FF);
 
   static const palette = [
     AppColors.navy,
@@ -285,6 +332,9 @@ class _CategoryChart extends StatelessWidget {
     final entries = byCategory.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final total = entries.fold<int>(0, (s, e) => s + e.value);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Color colorAt(int i) =>
+        i == 0 && isDark ? darkNavy : palette[i % palette.length];
 
     return Row(
       children: [
@@ -299,7 +349,7 @@ class _CategoryChart extends StatelessWidget {
                 for (var i = 0; i < entries.length; i++)
                   PieChartSectionData(
                     value: entries[i].value.toDouble(),
-                    color: palette[i % palette.length],
+                    color: colorAt(i),
                     radius: 30,
                     showTitle: false,
                   ),
@@ -321,12 +371,13 @@ class _CategoryChart extends StatelessWidget {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: palette[i % palette.length],
+                          color: colorAt(i),
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(child: Text(entries[i].key)),
+                      const SizedBox(width: 8),
                       Text('${(entries[i].value * 100 / total).round()}%'),
                     ],
                   ),

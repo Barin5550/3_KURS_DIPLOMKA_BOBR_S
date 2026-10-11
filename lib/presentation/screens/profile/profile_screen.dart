@@ -60,11 +60,25 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                _Metric(value: '${plans.length}', label: 'планов'),
+                _Metric(
+                  value: '${plans.length}',
+                  label: Fmt.plural(plans.length, 'план', 'плана', 'планов'),
+                ),
                 const SizedBox(width: 8),
-                _Metric(value: '${completed.length}', label: 'занятий'),
+                _Metric(
+                  value: '${completed.length}',
+                  label: Fmt.plural(
+                    completed.length,
+                    'занятие',
+                    'занятия',
+                    'занятий',
+                  ),
+                ),
                 const SizedBox(width: 8),
-                _Metric(value: Fmt.hours(studiedMinutes / 60), label: 'часов'),
+                _Metric(
+                  value: Fmt.hours(studiedMinutes / 60),
+                  label: Fmt.hoursWord(studiedMinutes / 60),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -107,30 +121,39 @@ class ProfileScreen extends ConsumerWidget {
             Card(
               child: Column(
                 children: [
+                  // Подпись над переключателем: в одну строку с ним
+                  // на узком экране текст переносился посреди слова.
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    child: Row(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Icon(Icons.palette_outlined),
-                        const SizedBox(width: 16),
-                        const Expanded(child: Text('Тема оформления')),
+                        const Row(
+                          children: [
+                            Icon(Icons.palette_outlined),
+                            SizedBox(width: 16),
+                            Expanded(child: Text('Тема оформления')),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
                         SegmentedButton<String>(
                           showSelectedIcon: false,
+                          style: SegmentedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                          ),
                           segments: const [
                             ButtonSegment(
                               value: 'light',
-                              icon: Icon(Icons.light_mode, size: 18),
-                              tooltip: 'Светлая',
+                              label: _SegmentLabel('Светлая'),
                             ),
                             ButtonSegment(
                               value: 'system',
-                              icon: Icon(Icons.brightness_auto, size: 18),
+                              label: _SegmentLabel('Авто'),
                               tooltip: 'Как в системе',
                             ),
                             ButtonSegment(
                               value: 'dark',
-                              icon: Icon(Icons.dark_mode, size: 18),
-                              tooltip: 'Тёмная',
+                              label: _SegmentLabel('Тёмная'),
                             ),
                           ],
                           selected: {themeMode},
@@ -295,5 +318,19 @@ class _Metric extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+/// Подпись сегмента в одну строку: на узком экране или с крупным
+/// системным шрифтом текст уменьшается, а не переносится по буквам.
+class _SegmentLabel extends StatelessWidget {
+  const _SegmentLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text(text, maxLines: 1, softWrap: false),
   );
 }

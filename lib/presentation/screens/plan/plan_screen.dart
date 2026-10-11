@@ -127,7 +127,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Выполнено ${progress.doneSessions} из ${progress.totalSessions} занятий'
+                    'Выполнено ${progress.doneSessions} из ${progress.totalSessions} ${Fmt.plural(progress.totalSessions, 'занятия', 'занятий', 'занятий')}'
                     '${progress.missedSessions > 0 ? ' · пропущено ${progress.missedSessions}' : ''}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),

@@ -120,122 +120,146 @@ class _PreviewBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final finish = result.finishDate;
     final required = result.requiredHoursPerWeek;
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    // Кнопка «Начать обучение» закреплена внизу: список тем длинный,
+    // и прокручивать его до конца ради сохранения неудобно.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          child: Padding(
+        Expanded(
+          child: ListView(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: theme.textTheme.titleLarge),
-                const SizedBox(height: 12),
-                _Stat(
-                  icon: Icons.list_alt,
-                  text:
-                      '${Fmt.count(result.orderedTopics.length, 'тема', 'темы', 'тем')} в плане'
-                      '${result.excludedTopics.isEmpty ? '' : ', ${result.excludedTopics.length} исключено по тесту'}',
-                ),
-                _Stat(
-                  icon: Icons.schedule,
-                  text:
-                      '${Fmt.minutes(result.studyMinutes)} изучения + '
-                      '${Fmt.minutes(result.reviewMinutes)} повторений',
-                ),
-                _Stat(
-                  icon: Icons.flag,
-                  text: finish == null
-                      ? 'Все темы уже изучены'
-                      : 'Окончание: ${Fmt.short(finish)}',
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (!result.deadlineMet)
-          Card(
-            key: const Key('deadline_warning'),
-            color: AppColors.warning.withValues(alpha: .15),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.warning_amber, color: AppColors.warning),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'План не укладывается в дедлайн',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                      Text(title, style: theme.textTheme.titleLarge),
+                      const SizedBox(height: 12),
+                      _Stat(
+                        icon: Icons.list_alt,
+                        text:
+                            '${Fmt.count(result.orderedTopics.length, 'тема', 'темы', 'тем')} в плане'
+                            '${result.excludedTopics.isEmpty ? '' : ', ${result.excludedTopics.length} исключено по тесту'}',
+                      ),
+                      _Stat(
+                        icon: Icons.schedule,
+                        text:
+                            '${Fmt.minutes(result.studyMinutes)} изучения + '
+                            '${Fmt.minutes(result.reviewMinutes)} повторений',
+                      ),
+                      _Stat(
+                        icon: Icons.flag,
+                        text: finish == null
+                            ? 'Все темы уже изучены'
+                            : 'Окончание: ${Fmt.short(finish)}',
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    required == null
-                        ? 'Даже 84 часов в неделю не хватит. Перенесите дедлайн.'
-                        : 'Чтобы успеть, нужно ${Fmt.hours(required)} ч в неделю.',
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (!result.deadlineMet)
+                Card(
+                  key: const Key('deadline_warning'),
+                  color: AppColors.warning.withValues(alpha: .15),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.warning_amber, color: AppColors.warning),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'План не укладывается в дедлайн',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          required == null
+                              ? 'Даже 84 часов в неделю не хватит. Перенесите дедлайн.'
+                              : 'Чтобы успеть, нужно ${Fmt.hours(required)} ч в неделю.',
+                        ),
+                        if (required != null)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                              key: const Key('apply_hours'),
+                              onPressed: () => onApplyHours(required),
+                              child: Text(
+                                'Установить ${Fmt.hours(required)} ч/нед',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                  if (required != null)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: TextButton(
-                        key: const Key('apply_hours'),
-                        onPressed: () => onApplyHours(required),
-                        child: Text('Установить ${Fmt.hours(required)} ч/нед'),
+                ),
+              const SectionTitle('Порядок тем'),
+              for (var i = 0; i < result.orderedTopics.length; i++)
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  // В тёмной теме тёмно-синий круг сливается с фоном,
+                  // поэтому там он светло-синий с тёмной цифрой.
+                  leading: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: isDark
+                        ? theme.colorScheme.tertiary
+                        : AppColors.navy,
+                    child: Text(
+                      '${i + 1}',
+                      style: TextStyle(
+                        color: isDark ? AppColors.navyDeep : Colors.white,
+                        fontSize: 13,
                       ),
                     ),
-                ],
-              ),
-            ),
-          ),
-        const SectionTitle('Порядок тем'),
-        for (var i = 0; i < result.orderedTopics.length; i++)
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-            leading: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.navy,
-              child: Text(
-                '${i + 1}',
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-            ),
-            title: Text(result.orderedTopics[i].title),
-            subtitle: Text(
-              '${result.orderedTopics[i].category} · '
-              '${Fmt.minutes(result.orderedTopics[i].minutes)}',
-            ),
-          ),
-        const SizedBox(height: 16),
-        FilledButton(
-          key: const Key('preview_save'),
-          onPressed: saving || result.orderedTopics.isEmpty ? null : onSave,
-          child: saving
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Colors.white,
                   ),
-                )
-              : const Text('Начать обучение'),
+                  title: Text(result.orderedTopics[i].title),
+                  subtitle: Text(
+                    '${result.orderedTopics[i].category} · '
+                    '${Fmt.minutes(result.orderedTopics[i].minutes)}',
+                  ),
+                ),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: () => context.pop(),
+                child: const Text('Изменить расписание'),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        OutlinedButton(
-          onPressed: () => context.pop(),
-          child: const Text('Изменить расписание'),
+        const Divider(height: 1),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: FilledButton(
+              key: const Key('preview_save'),
+              onPressed: saving || result.orderedTopics.isEmpty ? null : onSave,
+              child: saving
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Начать обучение'),
+            ),
+          ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }

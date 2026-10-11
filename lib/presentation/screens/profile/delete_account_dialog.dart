@@ -62,29 +62,34 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
     return AlertDialog(
       icon: Icon(Icons.warning_amber_rounded, color: error),
       title: const Text('Удалить аккаунт?'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Будут удалены все планы, занятия, заметки, свои темы и '
-            'статистика. Отменить удаление нельзя.',
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: const Key('delete_password_field'),
-            controller: _password,
-            obscureText: true,
-            autofocus: true,
-            enabled: !_deleting,
-            decoration: InputDecoration(
-              labelText: 'Пароль',
-              prefixIcon: const Icon(Icons.lock_outline),
-              errorText: _error,
+      // На широком экране без ограничения диалог растягивается
+      // и текст вытягивается в одну длинную строку.
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Будут удалены все планы, занятия, заметки, свои темы и '
+              'статистика. Отменить удаление нельзя.',
             ),
-            onSubmitted: (_) => _delete(),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextField(
+              key: const Key('delete_password_field'),
+              controller: _password,
+              obscureText: true,
+              autofocus: true,
+              enabled: !_deleting,
+              decoration: InputDecoration(
+                labelText: 'Пароль',
+                prefixIcon: const Icon(Icons.lock_outline),
+                errorText: _error,
+              ),
+              onSubmitted: (_) => _delete(),
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
