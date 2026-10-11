@@ -1,0 +1,254 @@
+{
+  "id": "flutter",
+  "title": "Flutter-разработчик",
+  "description": "От основ Dart до публикации мобильного приложения на Flutter.",
+  "icon": "phone_android",
+  "color": "#3D5AFE",
+  "topics": [
+    {
+      "id": "fl_dart_syntax",
+      "title": "Синтаксис Dart: переменные, типы, функции",
+      "description": "Переменные var/final/const, встроенные типы, операторы, условия и циклы, функции с именованными и необязательными параметрами.",
+      "hours": 6,
+      "level": 1,
+      "category": "Язык Dart",
+      "prerequisites": [],
+      "resources": [{"title": "Dart: Language tour", "url": "https://dart.dev/language"}],
+      "question": {
+        "text": "Чем final отличается от const в Dart?",
+        "options": ["Ничем, это синонимы", "final задаётся один раз во время выполнения, const — константа времени компиляции", "const можно переприсвоить, final — нет", "final используется только для классов"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_dart_oop",
+      "title": "ООП в Dart: классы, наследование, миксины",
+      "description": "Классы и конструкторы, именованные и factory-конструкторы, наследование, абстрактные классы, интерфейсы, миксины, расширения.",
+      "hours": 6,
+      "level": 2,
+      "category": "Язык Dart",
+      "prerequisites": ["fl_dart_syntax"],
+      "resources": [{"title": "Dart: Classes", "url": "https://dart.dev/language/classes"}],
+      "question": {
+        "text": "Для чего в Dart используется ключевое слово with?",
+        "options": ["Для подключения миксина к классу", "Для объявления интерфейса", "Для обработки исключений", "Для импорта библиотеки"],
+        "answer": 0
+      }
+    },
+    {
+      "id": "fl_dart_null",
+      "title": "Null safety и коллекции",
+      "description": "Nullable-типы, операторы ?, ??, !, late; коллекции List, Set, Map, их методы и литералы с if/for.",
+      "hours": 4,
+      "level": 2,
+      "category": "Язык Dart",
+      "prerequisites": ["fl_dart_syntax"],
+      "resources": [{"title": "Dart: Sound null safety", "url": "https://dart.dev/null-safety"}]
+    },
+    {
+      "id": "fl_dart_async",
+      "title": "Асинхронность: Future, async/await, Stream",
+      "description": "Цикл событий Dart, Future и async/await, обработка ошибок в асинхронном коде, потоки Stream и подписки, изоляты.",
+      "hours": 6,
+      "level": 3,
+      "category": "Язык Dart",
+      "prerequisites": ["fl_dart_oop", "fl_dart_null"],
+      "resources": [{"title": "Dart: Asynchronous programming", "url": "https://dart.dev/libraries/async/async-await"}],
+      "question": {
+        "text": "Что всегда возвращает функция, помеченная async?",
+        "options": ["Stream", "void", "Future", "Isolate"],
+        "answer": 2
+      }
+    },
+    {
+      "id": "fl_setup",
+      "title": "Установка Flutter и первый проект",
+      "description": "Установка SDK, flutter doctor, структура проекта, запуск на эмуляторе, hot reload и hot restart.",
+      "hours": 2,
+      "level": 1,
+      "category": "Основы Flutter",
+      "prerequisites": ["fl_dart_syntax"],
+      "resources": [{"title": "Flutter: Get started", "url": "https://docs.flutter.dev/get-started"}]
+    },
+    {
+      "id": "fl_widgets",
+      "title": "Виджеты: Stateless и Stateful",
+      "description": "Дерево виджетов, StatelessWidget и StatefulWidget, жизненный цикл State, BuildContext, ключи.",
+      "hours": 6,
+      "level": 2,
+      "category": "Основы Flutter",
+      "prerequisites": ["fl_dart_oop", "fl_setup"],
+      "resources": [{"title": "Flutter: Introduction to widgets", "url": "https://docs.flutter.dev/ui"}],
+      "question": {
+        "text": "Какой метод нужно вызвать, чтобы StatefulWidget перестроился после изменения данных?",
+        "options": ["build()", "setState()", "initState()", "dispose()"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_layout",
+      "title": "Вёрстка: Row, Column, Stack, Flex",
+      "description": "Ограничения (constraints), Row/Column, Expanded и Flexible, Stack и Positioned, списки ListView и GridView, адаптивная вёрстка.",
+      "hours": 6,
+      "level": 2,
+      "category": "Интерфейс",
+      "prerequisites": ["fl_widgets"],
+      "resources": [{"title": "Flutter: Layouts", "url": "https://docs.flutter.dev/ui/layout"}],
+      "question": {
+        "text": "Какой виджет заставит дочерний элемент Row занять всё оставшееся место?",
+        "options": ["Padding", "Expanded", "Center", "SizedBox.shrink"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_material",
+      "title": "Material 3 и темы оформления",
+      "description": "ThemeData, ColorScheme.fromSeed, светлая и тёмная темы, типографика, компоненты Material 3.",
+      "hours": 4,
+      "level": 3,
+      "category": "Интерфейс",
+      "prerequisites": ["fl_layout"],
+      "resources": [{"title": "Flutter: Themes", "url": "https://docs.flutter.dev/cookbook/design/themes"}]
+    },
+    {
+      "id": "fl_forms",
+      "title": "Формы, ввод и валидация",
+      "description": "Form и TextFormField, контроллеры, валидаторы, клавиатура и фокус, вывод ошибок пользователю.",
+      "hours": 4,
+      "level": 3,
+      "category": "Интерфейс",
+      "prerequisites": ["fl_layout"],
+      "resources": [{"title": "Flutter: Forms", "url": "https://docs.flutter.dev/cookbook/forms/validation"}]
+    },
+    {
+      "id": "fl_navigation",
+      "title": "Навигация и go_router",
+      "description": "Navigator, декларативная навигация с go_router, параметры маршрутов, redirect, вложенная навигация и нижняя панель.",
+      "hours": 5,
+      "level": 3,
+      "category": "Основы Flutter",
+      "prerequisites": ["fl_widgets"],
+      "resources": [{"title": "go_router на pub.dev", "url": "https://pub.dev/packages/go_router"}],
+      "question": {
+        "text": "Для чего в go_router используется параметр redirect?",
+        "options": ["Для анимации перехода", "Для перенаправления, например неавторизованного пользователя на вход", "Для смены темы", "Для загрузки данных из сети"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_state_basic",
+      "title": "setState и InheritedWidget",
+      "description": "Локальное состояние, подъём состояния, InheritedWidget и передача данных вниз по дереву.",
+      "hours": 3,
+      "level": 3,
+      "category": "Состояние",
+      "prerequisites": ["fl_widgets"],
+      "resources": [{"title": "Flutter: State management", "url": "https://docs.flutter.dev/data-and-backend/state-mgmt"}]
+    },
+    {
+      "id": "fl_riverpod",
+      "title": "Управление состоянием: Riverpod",
+      "description": "Provider, FutureProvider, StreamProvider, Notifier и AsyncNotifier, ref.watch и ref.read, family, overrides в тестах.",
+      "hours": 8,
+      "level": 4,
+      "category": "Состояние",
+      "prerequisites": ["fl_state_basic", "fl_dart_async"],
+      "resources": [{"title": "Riverpod: документация", "url": "https://riverpod.dev"}],
+      "question": {
+        "text": "Чем ref.watch отличается от ref.read в Riverpod?",
+        "options": ["Ничем", "watch подписывается на изменения и перестраивает виджет, read читает значение один раз", "read работает только в тестах", "watch можно вызывать только в обработчиках нажатий"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_http",
+      "title": "Работа с сетью: HTTP и JSON",
+      "description": "Пакет http, REST API, сериализация JSON, обработка ошибок сети, состояния загрузки.",
+      "hours": 6,
+      "level": 4,
+      "category": "Данные",
+      "prerequisites": ["fl_dart_async", "fl_widgets"],
+      "resources": [{"title": "Flutter: Networking", "url": "https://docs.flutter.dev/data-and-backend/networking"}]
+    },
+    {
+      "id": "fl_storage",
+      "title": "Локальное хранение: shared_preferences и SQLite (drift)",
+      "description": "Хранение настроек, база SQLite через drift: таблицы, запросы, реактивные watch-запросы, миграции.",
+      "hours": 6,
+      "level": 4,
+      "category": "Данные",
+      "prerequisites": ["fl_dart_async"],
+      "resources": [{"title": "drift: документация", "url": "https://drift.simonbinder.eu"}],
+      "question": {
+        "text": "Какой способ хранения лучше подходит для связанных данных с фильтрами и сортировками?",
+        "options": ["shared_preferences", "Реляционная база данных SQLite", "Переменные в памяти", "Текстовый файл"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_architecture",
+      "title": "Clean Architecture во Flutter",
+      "description": "Слои data, domain, presentation, репозитории, внедрение зависимостей, разделение логики и интерфейса.",
+      "hours": 6,
+      "level": 5,
+      "category": "Архитектура",
+      "prerequisites": ["fl_riverpod", "fl_storage"],
+      "resources": [{"title": "Flutter: App architecture guide", "url": "https://docs.flutter.dev/app-architecture"}]
+    },
+    {
+      "id": "fl_animations",
+      "title": "Анимации",
+      "description": "Неявные анимации AnimatedContainer и AnimatedOpacity, AnimationController, Hero-переходы.",
+      "hours": 5,
+      "level": 4,
+      "category": "Интерфейс",
+      "prerequisites": ["fl_material"],
+      "resources": [{"title": "Flutter: Animations", "url": "https://docs.flutter.dev/ui/animations"}]
+    },
+    {
+      "id": "fl_testing",
+      "title": "Тестирование: unit, widget, integration",
+      "description": "Пакет test и flutter_test, виджет-тесты с WidgetTester, интеграционные тесты, подмена зависимостей.",
+      "hours": 6,
+      "level": 5,
+      "category": "Качество",
+      "prerequisites": ["fl_riverpod"],
+      "resources": [{"title": "Flutter: Testing", "url": "https://docs.flutter.dev/testing/overview"}],
+      "question": {
+        "text": "Какой тип теста проверяет отдельный экран без запуска на устройстве?",
+        "options": ["Интеграционный", "Виджет-тест", "Нагрузочный", "Ручной"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "fl_notifications",
+      "title": "Плагины платформы и уведомления",
+      "description": "Platform channels, разрешения, локальные уведомления flutter_local_notifications, планирование напоминаний.",
+      "hours": 4,
+      "level": 5,
+      "category": "Платформа",
+      "prerequisites": ["fl_navigation", "fl_storage"],
+      "resources": [{"title": "flutter_local_notifications на pub.dev", "url": "https://pub.dev/packages/flutter_local_notifications"}]
+    },
+    {
+      "id": "fl_release",
+      "title": "Сборка и публикация APK",
+      "description": "Иконка и название приложения, режимы debug/profile/release, подпись, flutter build apk, публикация.",
+      "hours": 3,
+      "level": 5,
+      "category": "Релиз",
+      "prerequisites": ["fl_testing"],
+      "resources": [{"title": "Flutter: Build and release an Android app", "url": "https://docs.flutter.dev/deployment/android"}]
+    },
+    {
+      "id": "fl_project",
+      "title": "Итоговый проект",
+      "description": "Самостоятельное приложение с архитектурой, хранением данных, тестами и релизной сборкой.",
+      "hours": 12,
+      "level": 6,
+      "category": "Практика",
+      "prerequisites": ["fl_architecture", "fl_animations", "fl_notifications", "fl_release", "fl_http", "fl_forms"],
+      "resources": [{"title": "Flutter: Cookbook", "url": "https://docs.flutter.dev/cookbook"}]
+    }
+  ]
+}

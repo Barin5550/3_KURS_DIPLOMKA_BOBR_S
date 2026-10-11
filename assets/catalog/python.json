@@ -1,0 +1,229 @@
+{
+  "id": "python",
+  "title": "Python с нуля",
+  "description": "Основы языка Python, ООП, работа с файлами, базами данных и создание веб-приложения.",
+  "icon": "code",
+  "color": "#2E7D32",
+  "topics": [
+    {
+      "id": "py_intro",
+      "title": "Установка Python и первая программа",
+      "description": "Установка интерпретатора, IDE, запуск скриптов, интерактивный режим, print и input.",
+      "hours": 2,
+      "level": 1,
+      "category": "Основы",
+      "prerequisites": [],
+      "resources": [{"title": "The Python Tutorial", "url": "https://docs.python.org/3/tutorial/"}]
+    },
+    {
+      "id": "py_types",
+      "title": "Типы данных и операторы",
+      "description": "int, float, str, bool, None, приведение типов, арифметические и логические операторы.",
+      "hours": 4,
+      "level": 1,
+      "category": "Основы",
+      "prerequisites": ["py_intro"],
+      "resources": [{"title": "Built-in Types", "url": "https://docs.python.org/3/library/stdtypes.html"}],
+      "question": {
+        "text": "Какой результат даст выражение 7 // 2 в Python?",
+        "options": ["3.5", "3", "4", "Ошибка"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "py_control",
+      "title": "Условия и циклы",
+      "description": "if/elif/else, while, for и range, break и continue, вложенные циклы.",
+      "hours": 4,
+      "level": 2,
+      "category": "Основы",
+      "prerequisites": ["py_types"],
+      "resources": [{"title": "More Control Flow Tools", "url": "https://docs.python.org/3/tutorial/controlflow.html"}],
+      "question": {
+        "text": "Сколько раз выполнится тело цикла for i in range(2, 8, 2)?",
+        "options": ["3", "4", "6", "8"],
+        "answer": 0
+      }
+    },
+    {
+      "id": "py_strings",
+      "title": "Работа со строками",
+      "description": "Срезы, методы строк, f-строки, форматирование, кодировки.",
+      "hours": 3,
+      "level": 2,
+      "category": "Основы",
+      "prerequisites": ["py_types"],
+      "resources": [{"title": "Text Sequence Type — str", "url": "https://docs.python.org/3/library/stdtypes.html#text-sequence-type-str"}]
+    },
+    {
+      "id": "py_functions",
+      "title": "Функции и области видимости",
+      "description": "def, параметры по умолчанию, *args и **kwargs, return, области видимости LEGB, lambda.",
+      "hours": 5,
+      "level": 2,
+      "category": "Основы",
+      "prerequisites": ["py_control"],
+      "resources": [{"title": "Defining Functions", "url": "https://docs.python.org/3/tutorial/controlflow.html#defining-functions"}],
+      "question": {
+        "text": "Что вернёт функция, в которой нет оператора return?",
+        "options": ["0", "Пустую строку", "None", "Ошибку"],
+        "answer": 2
+      }
+    },
+    {
+      "id": "py_collections",
+      "title": "Списки, кортежи, словари, множества",
+      "description": "list, tuple, dict, set: создание, методы, перебор, изменяемость, вложенные структуры.",
+      "hours": 5,
+      "level": 2,
+      "category": "Структуры данных",
+      "prerequisites": ["py_control"],
+      "resources": [{"title": "Data Structures", "url": "https://docs.python.org/3/tutorial/datastructures.html"}]
+    },
+    {
+      "id": "py_files",
+      "title": "Файлы и исключения",
+      "description": "Открытие файлов, with, чтение и запись, try/except/finally, собственные исключения.",
+      "hours": 4,
+      "level": 3,
+      "category": "Основы",
+      "prerequisites": ["py_functions", "py_collections"],
+      "resources": [{"title": "Errors and Exceptions", "url": "https://docs.python.org/3/tutorial/errors.html"}],
+      "question": {
+        "text": "Зачем открывать файл через конструкцию with open(...) as f?",
+        "options": ["Так файл открывается быстрее", "Файл автоматически закроется даже при ошибке", "Иначе нельзя читать файл", "Для шифрования файла"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "py_modules",
+      "title": "Модули, пакеты, pip и venv",
+      "description": "import, создание модулей и пакетов, виртуальные окружения, установка библиотек через pip.",
+      "hours": 3,
+      "level": 3,
+      "category": "Инструменты",
+      "prerequisites": ["py_functions"],
+      "resources": [{"title": "Modules", "url": "https://docs.python.org/3/tutorial/modules.html"}]
+    },
+    {
+      "id": "py_oop",
+      "title": "ООП в Python",
+      "description": "Классы, __init__, self, наследование, инкапсуляция, магические методы, dataclasses.",
+      "hours": 6,
+      "level": 3,
+      "category": "ООП",
+      "prerequisites": ["py_functions", "py_collections"],
+      "resources": [{"title": "Classes", "url": "https://docs.python.org/3/tutorial/classes.html"}],
+      "question": {
+        "text": "Какой метод вызывается при создании объекта класса?",
+        "options": ["__str__", "__init__", "__call__", "__del__"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "py_comprehensions",
+      "title": "Итераторы, генераторы, comprehensions",
+      "description": "Списковые и словарные включения, итераторы, генераторы и yield, модуль itertools.",
+      "hours": 4,
+      "level": 3,
+      "category": "Структуры данных",
+      "prerequisites": ["py_collections", "py_functions"],
+      "resources": [{"title": "Iterators and generators", "url": "https://docs.python.org/3/tutorial/classes.html#iterators"}]
+    },
+    {
+      "id": "py_decorators",
+      "title": "Замыкания и декораторы",
+      "description": "Функции высшего порядка, замыкания, декораторы с параметрами, functools.wraps.",
+      "hours": 4,
+      "level": 4,
+      "category": "Продвинутый Python",
+      "prerequisites": ["py_comprehensions"],
+      "resources": [{"title": "Glossary: decorator", "url": "https://docs.python.org/3/glossary.html#term-decorator"}],
+      "question": {
+        "text": "Что делает декоратор в Python?",
+        "options": ["Удаляет функцию", "Оборачивает функцию, добавляя ей поведение без изменения её кода", "Переводит код в байт-код", "Объявляет переменную глобальной"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "py_stdlib",
+      "title": "Стандартная библиотека: datetime, json, collections",
+      "description": "Работа с датами, сериализация JSON, Counter, defaultdict, pathlib.",
+      "hours": 4,
+      "level": 4,
+      "category": "Инструменты",
+      "prerequisites": ["py_modules", "py_files"],
+      "resources": [{"title": "The Python Standard Library", "url": "https://docs.python.org/3/library/"}]
+    },
+    {
+      "id": "py_testing",
+      "title": "Тестирование: unittest и pytest",
+      "description": "Модульные тесты, assert, фикстуры pytest, параметризация, покрытие кода.",
+      "hours": 4,
+      "level": 4,
+      "category": "Качество",
+      "prerequisites": ["py_oop", "py_modules"],
+      "resources": [{"title": "unittest — Unit testing framework", "url": "https://docs.python.org/3/library/unittest.html"}],
+      "question": {
+        "text": "Что проверяет модульный (unit) тест?",
+        "options": ["Работу всей системы целиком", "Отдельную функцию или класс изолированно", "Скорость интернета", "Дизайн интерфейса"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "py_http",
+      "title": "HTTP-запросы и работа с API",
+      "description": "Протокол HTTP, библиотека requests, JSON API, обработка ошибок и таймаутов.",
+      "hours": 4,
+      "level": 4,
+      "category": "Сеть",
+      "prerequisites": ["py_stdlib"],
+      "resources": [{"title": "urllib.request", "url": "https://docs.python.org/3/library/urllib.request.html"}]
+    },
+    {
+      "id": "py_sql",
+      "title": "Базы данных: sqlite3 и SQL",
+      "description": "Основы SQL, модуль sqlite3, CRUD-операции, параметризованные запросы, транзакции.",
+      "hours": 6,
+      "level": 4,
+      "category": "Данные",
+      "prerequisites": ["py_stdlib", "py_oop"],
+      "resources": [{"title": "sqlite3 — DB-API 2.0 interface", "url": "https://docs.python.org/3/library/sqlite3.html"}]
+    },
+    {
+      "id": "py_async",
+      "title": "Асинхронность: asyncio",
+      "description": "Корутины async/await, event loop, задачи, asyncio.gather, когда асинхронность полезна.",
+      "hours": 5,
+      "level": 5,
+      "category": "Продвинутый Python",
+      "prerequisites": ["py_decorators", "py_oop"],
+      "resources": [{"title": "asyncio — Asynchronous I/O", "url": "https://docs.python.org/3/library/asyncio.html"}]
+    },
+    {
+      "id": "py_web",
+      "title": "Веб-приложение на Flask или FastAPI",
+      "description": "Маршруты, обработка запросов, шаблоны или JSON-ответы, подключение базы данных.",
+      "hours": 8,
+      "level": 5,
+      "category": "Веб",
+      "prerequisites": ["py_http", "py_sql", "py_testing"],
+      "resources": [{"title": "Flask documentation", "url": "https://flask.palletsprojects.com"}],
+      "question": {
+        "text": "Что такое маршрут (route) в веб-фреймворке?",
+        "options": ["Сетевой кабель", "Связь URL-адреса с функцией-обработчиком", "Таблица в базе данных", "Файл стилей"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "py_project",
+      "title": "Итоговый проект",
+      "description": "Самостоятельное приложение: веб-сервис или бот с базой данных и тестами.",
+      "hours": 12,
+      "level": 6,
+      "category": "Практика",
+      "prerequisites": ["py_web", "py_async", "py_strings"],
+      "resources": [{"title": "Python HOWTOs", "url": "https://docs.python.org/3/howto/"}]
+    }
+  ]
+}

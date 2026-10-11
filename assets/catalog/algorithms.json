@@ -1,0 +1,229 @@
+{
+  "id": "algorithms",
+  "title": "Алгоритмы и структуры данных",
+  "description": "Классические алгоритмы и структуры данных для учёбы и подготовки к собеседованиям.",
+  "icon": "account_tree",
+  "color": "#6A1B9A",
+  "topics": [
+    {
+      "id": "al_complexity",
+      "title": "Асимптотическая сложность и O-нотация",
+      "description": "Оценка времени и памяти, O, Ω, Θ, лучший, средний и худший случай.",
+      "hours": 4,
+      "level": 1,
+      "category": "Основы",
+      "prerequisites": [],
+      "resources": [{"title": "Big-O Cheat Sheet", "url": "https://www.bigocheatsheet.com"}],
+      "question": {
+        "text": "Какова сложность поиска элемента перебором в неотсортированном массиве из n элементов?",
+        "options": ["O(1)", "O(log n)", "O(n)", "O(n²)"],
+        "answer": 2
+      }
+    },
+    {
+      "id": "al_arrays",
+      "title": "Массивы и строки",
+      "description": "Статические и динамические массивы, амортизированная сложность, операции со строками.",
+      "hours": 4,
+      "level": 1,
+      "category": "Структуры данных",
+      "prerequisites": ["al_complexity"],
+      "resources": [{"title": "Visualgo: Array", "url": "https://visualgo.net/en/array"}]
+    },
+    {
+      "id": "al_recursion",
+      "title": "Рекурсия",
+      "description": "Базовый случай, стек вызовов, рекурсивные алгоритмы, переход от рекурсии к итерации.",
+      "hours": 4,
+      "level": 2,
+      "category": "Основы",
+      "prerequisites": ["al_complexity"],
+      "resources": [{"title": "Visualgo: Recursion", "url": "https://visualgo.net/en/recursion"}],
+      "question": {
+        "text": "Что произойдёт, если в рекурсивной функции нет базового случая?",
+        "options": ["Функция вернёт 0", "Произойдёт переполнение стека вызовов", "Функция выполнится один раз", "Компилятор сам добавит выход"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "al_sorting_basic",
+      "title": "Простые сортировки",
+      "description": "Пузырьковая, вставками, выбором; устойчивость сортировки, сложность O(n²).",
+      "hours": 3,
+      "level": 2,
+      "category": "Сортировка и поиск",
+      "prerequisites": ["al_arrays"],
+      "resources": [{"title": "Visualgo: Sorting", "url": "https://visualgo.net/en/sorting"}]
+    },
+    {
+      "id": "al_two_pointers",
+      "title": "Два указателя и скользящее окно",
+      "description": "Техники обработки массивов за линейное время, типовые задачи.",
+      "hours": 4,
+      "level": 3,
+      "category": "Техники",
+      "prerequisites": ["al_arrays"],
+      "resources": [{"title": "LeetCode: Explore", "url": "https://leetcode.com/explore/"}]
+    },
+    {
+      "id": "al_stack_queue",
+      "title": "Стек, очередь, дек",
+      "description": "LIFO и FIFO, реализация на массиве и списке, задачи на скобочные последовательности.",
+      "hours": 4,
+      "level": 2,
+      "category": "Структуры данных",
+      "prerequisites": ["al_arrays"],
+      "resources": [{"title": "Visualgo: Linked list, stack, queue", "url": "https://visualgo.net/en/list"}]
+    },
+    {
+      "id": "al_linked_list",
+      "title": "Связные списки",
+      "description": "Односвязные и двусвязные списки, вставка и удаление, разворот списка, поиск цикла.",
+      "hours": 3,
+      "level": 3,
+      "category": "Структуры данных",
+      "prerequisites": ["al_stack_queue"],
+      "resources": [{"title": "Visualgo: Linked list", "url": "https://visualgo.net/en/list"}]
+    },
+    {
+      "id": "al_hashing",
+      "title": "Хеш-таблицы",
+      "description": "Хеш-функции, коллизии, цепочки и открытая адресация, словари и множества.",
+      "hours": 4,
+      "level": 3,
+      "category": "Структуры данных",
+      "prerequisites": ["al_arrays"],
+      "resources": [{"title": "Visualgo: Hash table", "url": "https://visualgo.net/en/hashtable"}],
+      "question": {
+        "text": "Какова средняя сложность поиска в хеш-таблице?",
+        "options": ["O(1)", "O(n)", "O(n log n)", "O(log n) всегда"],
+        "answer": 0
+      }
+    },
+    {
+      "id": "al_sorting_fast",
+      "title": "Быстрые сортировки: слиянием и быстрая",
+      "description": "Merge sort, quick sort, принцип «разделяй и властвуй», сложность O(n log n).",
+      "hours": 5,
+      "level": 3,
+      "category": "Сортировка и поиск",
+      "prerequisites": ["al_sorting_basic", "al_recursion"],
+      "resources": [{"title": "Visualgo: Sorting", "url": "https://visualgo.net/en/sorting"}],
+      "question": {
+        "text": "Какова сложность сортировки слиянием в худшем случае?",
+        "options": ["O(n)", "O(n log n)", "O(n²)", "O(log n)"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "al_binary_search",
+      "title": "Бинарный поиск",
+      "description": "Поиск в отсортированном массиве, поиск границ, бинарный поиск по ответу.",
+      "hours": 3,
+      "level": 3,
+      "category": "Сортировка и поиск",
+      "prerequisites": ["al_sorting_basic"],
+      "resources": [{"title": "Visualgo: BST", "url": "https://visualgo.net/en/bst"}],
+      "question": {
+        "text": "Какое обязательное условие для бинарного поиска в массиве?",
+        "options": ["Массив отсортирован", "Длина массива чётная", "Элементы уникальны", "Массив хранится в хеш-таблице"],
+        "answer": 0
+      }
+    },
+    {
+      "id": "al_trees",
+      "title": "Деревья и двоичные деревья поиска",
+      "description": "Обходы деревьев, BST: вставка, поиск, удаление, понятие сбалансированности.",
+      "hours": 5,
+      "level": 4,
+      "category": "Структуры данных",
+      "prerequisites": ["al_recursion", "al_linked_list"],
+      "resources": [{"title": "Visualgo: BST", "url": "https://visualgo.net/en/bst"}]
+    },
+    {
+      "id": "al_heap",
+      "title": "Куча и очередь с приоритетом",
+      "description": "Двоичная куча, просеивание, heapsort, очередь с приоритетом.",
+      "hours": 4,
+      "level": 4,
+      "category": "Структуры данных",
+      "prerequisites": ["al_trees"],
+      "resources": [{"title": "Visualgo: Binary heap", "url": "https://visualgo.net/en/heap"}]
+    },
+    {
+      "id": "al_graphs",
+      "title": "Графы: представление, BFS и DFS",
+      "description": "Матрица и списки смежности, обход в ширину и в глубину, компоненты связности.",
+      "hours": 6,
+      "level": 4,
+      "category": "Графы",
+      "prerequisites": ["al_stack_queue", "al_recursion"],
+      "resources": [{"title": "Visualgo: Graph traversal", "url": "https://visualgo.net/en/dfsbfs"}],
+      "question": {
+        "text": "Какую структуру данных использует обход графа в ширину (BFS)?",
+        "options": ["Стек", "Очередь", "Кучу", "Хеш-таблицу"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "al_topological_sort",
+      "title": "Топологическая сортировка",
+      "description": "Ориентированные ациклические графы, алгоритм Кана и сортировка на основе DFS, поиск циклов.",
+      "hours": 3,
+      "level": 5,
+      "category": "Графы",
+      "prerequisites": ["al_graphs"],
+      "resources": [{"title": "Visualgo: Graph traversal", "url": "https://visualgo.net/en/dfsbfs"}]
+    },
+    {
+      "id": "al_shortest_paths",
+      "title": "Кратчайшие пути: алгоритм Дейкстры",
+      "description": "Взвешенные графы, алгоритм Дейкстры с кучей, понятие об алгоритме Беллмана — Форда.",
+      "hours": 5,
+      "level": 5,
+      "category": "Графы",
+      "prerequisites": ["al_heap", "al_graphs"],
+      "resources": [{"title": "Visualgo: SSSP", "url": "https://visualgo.net/en/sssp"}],
+      "question": {
+        "text": "Для каких графов алгоритм Дейкстры даёт корректный результат?",
+        "options": ["С любыми весами рёбер", "С неотрицательными весами рёбер", "Только с отрицательными весами", "Только для деревьев"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "al_greedy",
+      "title": "Жадные алгоритмы",
+      "description": "Жадный выбор, задачи о расписании и о рюкзаке с дробными предметами, доказательство корректности.",
+      "hours": 4,
+      "level": 4,
+      "category": "Техники",
+      "prerequisites": ["al_sorting_fast"],
+      "resources": [{"title": "Visualgo: Sorting", "url": "https://visualgo.net/en/sorting"}]
+    },
+    {
+      "id": "al_dynamic_programming",
+      "title": "Динамическое программирование",
+      "description": "Подзадачи и мемоизация, восходящее ДП, задачи о рюкзаке, НВП, редакционное расстояние.",
+      "hours": 8,
+      "level": 5,
+      "category": "Техники",
+      "prerequisites": ["al_recursion", "al_hashing"],
+      "resources": [{"title": "Visualgo: Recursion tree / DAG", "url": "https://visualgo.net/en/recursion"}],
+      "question": {
+        "text": "Что такое мемоизация?",
+        "options": ["Удаление лишних переменных", "Сохранение результатов уже решённых подзадач для повторного использования", "Сортировка массива перед поиском", "Разбиение программы на модули"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "al_practice",
+      "title": "Практикум: задачи с собеседований",
+      "description": "Решение смешанных задач на время, разбор типичных ошибок, оценка сложности решений.",
+      "hours": 10,
+      "level": 6,
+      "category": "Практика",
+      "prerequisites": ["al_dynamic_programming", "al_shortest_paths", "al_topological_sort", "al_greedy", "al_binary_search", "al_two_pointers"],
+      "resources": [{"title": "LeetCode: Explore", "url": "https://leetcode.com/explore/"}]
+    }
+  ]
+}

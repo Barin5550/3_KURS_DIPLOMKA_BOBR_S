@@ -1,0 +1,234 @@
+{
+  "id": "english",
+  "title": "Английский A1 → B1",
+  "description": "Грамматика, лексика, аудирование и разговорная практика от начального уровня до B1.",
+  "icon": "translate",
+  "color": "#C62828",
+  "topics": [
+    {
+      "id": "en_phonetics",
+      "title": "Фонетика и правила чтения",
+      "description": "Алфавит, звуки английского языка, транскрипция, основные правила чтения.",
+      "hours": 3,
+      "level": 1,
+      "category": "Произношение",
+      "prerequisites": [],
+      "resources": [{"title": "Cambridge Dictionary", "url": "https://dictionary.cambridge.org"}]
+    },
+    {
+      "id": "en_to_be",
+      "title": "Глагол to be и местоимения",
+      "description": "Формы am/is/are, личные и притяжательные местоимения, вопросы и отрицания с to be.",
+      "hours": 3,
+      "level": 1,
+      "category": "Грамматика",
+      "prerequisites": ["en_phonetics"],
+      "resources": [{"title": "British Council: Grammar", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Выберите правильный вариант: «They ___ students».",
+        "options": ["is", "am", "are", "be"],
+        "answer": 2
+      }
+    },
+    {
+      "id": "en_vocab_basic",
+      "title": "Базовая лексика: семья, дом, работа",
+      "description": "Около 300 частотных слов на бытовые темы, числа, дни недели, время.",
+      "hours": 5,
+      "level": 1,
+      "category": "Лексика",
+      "prerequisites": ["en_phonetics"],
+      "resources": [{"title": "British Council: Vocabulary", "url": "https://learnenglish.britishcouncil.org/vocabulary"}]
+    },
+    {
+      "id": "en_present_simple",
+      "title": "Present Simple",
+      "description": "Утверждения, вопросы и отрицания с do/does, окончание -s, наречия частотности.",
+      "hours": 4,
+      "level": 2,
+      "category": "Грамматика",
+      "prerequisites": ["en_to_be"],
+      "resources": [{"title": "British Council: Present simple", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Выберите правильный вариант: «She ___ coffee every morning».",
+        "options": ["drink", "drinks", "is drink", "drinking"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "en_articles",
+      "title": "Артикли и исчисляемость",
+      "description": "a/an/the, нулевой артикль, исчисляемые и неисчисляемые существительные, much/many, some/any.",
+      "hours": 3,
+      "level": 2,
+      "category": "Грамматика",
+      "prerequisites": ["en_vocab_basic", "en_to_be"],
+      "resources": [{"title": "British Council: Articles", "url": "https://learnenglish.britishcouncil.org/grammar"}]
+    },
+    {
+      "id": "en_present_continuous",
+      "title": "Present Continuous",
+      "description": "Действия в момент речи и планы на ближайшее будущее, глаголы состояния.",
+      "hours": 3,
+      "level": 2,
+      "category": "Грамматика",
+      "prerequisites": ["en_present_simple"],
+      "resources": [{"title": "British Council: Present continuous", "url": "https://learnenglish.britishcouncil.org/grammar"}]
+    },
+    {
+      "id": "en_past_simple",
+      "title": "Past Simple",
+      "description": "Правильные и неправильные глаголы, вопросы и отрицания с did, рассказ о прошлом.",
+      "hours": 5,
+      "level": 2,
+      "category": "Грамматика",
+      "prerequisites": ["en_present_simple"],
+      "resources": [{"title": "British Council: Past simple", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Выберите правильный вариант: «We ___ to the cinema yesterday».",
+        "options": ["go", "goes", "went", "have gone"],
+        "answer": 2
+      }
+    },
+    {
+      "id": "en_modals",
+      "title": "Модальные глаголы",
+      "description": "can, could, must, have to, should, may: возможность, обязанность, совет, разрешение.",
+      "hours": 4,
+      "level": 3,
+      "category": "Грамматика",
+      "prerequisites": ["en_present_simple"],
+      "resources": [{"title": "British Council: Modal verbs", "url": "https://learnenglish.britishcouncil.org/grammar"}]
+    },
+    {
+      "id": "en_future",
+      "title": "Способы выражения будущего",
+      "description": "will, be going to, Present Continuous для планов, различия в употреблении.",
+      "hours": 4,
+      "level": 3,
+      "category": "Грамматика",
+      "prerequisites": ["en_present_continuous", "en_past_simple"],
+      "resources": [{"title": "British Council: Future forms", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Какая форма лучше подходит для заранее принятого решения: «I ___ visit my grandma this weekend»?",
+        "options": ["will", "am going to", "visited", "have visited"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "en_listening_a2",
+      "title": "Аудирование уровня A2",
+      "description": "Понимание коротких диалогов и объявлений, стратегии аудирования, работа с подкастами для начинающих.",
+      "hours": 6,
+      "level": 3,
+      "category": "Аудирование",
+      "prerequisites": ["en_vocab_basic", "en_present_continuous"],
+      "resources": [{"title": "British Council: Listening", "url": "https://learnenglish.britishcouncil.org/skills/listening"}]
+    },
+    {
+      "id": "en_vocab_travel",
+      "title": "Лексика: путешествия и город",
+      "description": "Транспорт, отель, ресторан, покупки, как спросить дорогу.",
+      "hours": 4,
+      "level": 3,
+      "category": "Лексика",
+      "prerequisites": ["en_vocab_basic"],
+      "resources": [{"title": "British Council: Vocabulary", "url": "https://learnenglish.britishcouncil.org/vocabulary"}]
+    },
+    {
+      "id": "en_present_perfect",
+      "title": "Present Perfect",
+      "description": "have/has + V3, опыт и результат, ever/never/already/yet, сравнение с Past Simple.",
+      "hours": 5,
+      "level": 4,
+      "category": "Грамматика",
+      "prerequisites": ["en_past_simple"],
+      "resources": [{"title": "British Council: Present perfect", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Выберите правильный вариант: «I ___ never ___ to London».",
+        "options": ["did / be", "have / been", "was / go", "am / going"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "en_writing_email",
+      "title": "Письмо: e-mail и сообщения",
+      "description": "Структура неформального и формального письма, связующие слова, типичные фразы.",
+      "hours": 4,
+      "level": 4,
+      "category": "Письмо",
+      "prerequisites": ["en_articles", "en_past_simple"],
+      "resources": [{"title": "British Council: Writing", "url": "https://learnenglish.britishcouncil.org/skills/writing"}]
+    },
+    {
+      "id": "en_speaking_small_talk",
+      "title": "Говорение: small talk",
+      "description": "Знакомство, разговор о себе, погоде, планах; поддержание беседы.",
+      "hours": 5,
+      "level": 4,
+      "category": "Говорение",
+      "prerequisites": ["en_listening_a2", "en_vocab_travel"],
+      "resources": [{"title": "British Council: Speaking", "url": "https://learnenglish.britishcouncil.org/skills/speaking"}]
+    },
+    {
+      "id": "en_conditionals",
+      "title": "Условные предложения",
+      "description": "Zero, First и Second Conditional, союзы if и unless.",
+      "hours": 5,
+      "level": 5,
+      "category": "Грамматика",
+      "prerequisites": ["en_future", "en_present_perfect"],
+      "resources": [{"title": "British Council: Conditionals", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Выберите правильный вариант: «If it rains tomorrow, we ___ at home».",
+        "options": ["stay", "will stay", "would stay", "stayed"],
+        "answer": 1
+      }
+    },
+    {
+      "id": "en_passive",
+      "title": "Пассивный залог",
+      "description": "Образование пассива во временах Present, Past и Future Simple, когда используется пассив.",
+      "hours": 4,
+      "level": 5,
+      "category": "Грамматика",
+      "prerequisites": ["en_present_perfect"],
+      "resources": [{"title": "British Council: Passive voice", "url": "https://learnenglish.britishcouncil.org/grammar"}],
+      "question": {
+        "text": "Какое предложение стоит в пассивном залоге?",
+        "options": ["Tom wrote the letter.", "The letter was written by Tom.", "Tom is writing the letter.", "Tom will write the letter."],
+        "answer": 1
+      }
+    },
+    {
+      "id": "en_reported_speech",
+      "title": "Косвенная речь",
+      "description": "Передача утверждений, вопросов и просьб, согласование времён.",
+      "hours": 4,
+      "level": 5,
+      "category": "Грамматика",
+      "prerequisites": ["en_passive"],
+      "resources": [{"title": "British Council: Reported speech", "url": "https://learnenglish.britishcouncil.org/grammar"}]
+    },
+    {
+      "id": "en_speaking_b1",
+      "title": "Говорение B1: мнение и обсуждение",
+      "description": "Выражение мнения, согласие и несогласие, аргументация, рассказ о событии.",
+      "hours": 6,
+      "level": 6,
+      "category": "Говорение",
+      "prerequisites": ["en_speaking_small_talk", "en_conditionals"],
+      "resources": [{"title": "British Council: Speaking", "url": "https://learnenglish.britishcouncil.org/skills/speaking"}]
+    },
+    {
+      "id": "en_final_test",
+      "title": "Итоговая проверка уровня B1",
+      "description": "Пробный тест по грамматике, лексике, чтению и аудированию, разбор ошибок.",
+      "hours": 4,
+      "level": 6,
+      "category": "Практика",
+      "prerequisites": ["en_writing_email", "en_reported_speech", "en_speaking_b1", "en_modals"],
+      "resources": [{"title": "Cambridge English: B1 Preliminary", "url": "https://www.cambridgeenglish.org"}]
+    }
+  ]
+}
