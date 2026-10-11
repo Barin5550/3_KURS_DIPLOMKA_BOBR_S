@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Маршрут — вайрфреймы</title>
+<style>
+  :root {
+    --bg: #eef1f6; --phone: #ffffff; --ink: #1b1f2a; --muted: #6b7280; --line: #d9dde5;
+    --accent: #3d5afe; --accent-soft: #e4e8ff; --ok: #1e9e5a; --warn: #d97706; --danger: #d14343;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  header { padding: 16px; text-align: center; }
+  header h1 { margin: 0 0 4px; font-size: 20px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  .layout { display: flex; gap: 24px; justify-content: center; align-items: flex-start; padding: 8px 16px 32px; flex-wrap: wrap; }
+  nav.map { width: 240px; background: #fff; border-radius: 12px; padding: 12px; font-size: 14px; }
+  nav.map h2 { font-size: 14px; margin: 4px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  nav.map button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; font: inherit; color: inherit; }
+  nav.map button.active, nav.map button:hover { background: var(--accent-soft); }
+  .phone { width: 360px; max-width: 100%; height: 740px; background: var(--phone); border: 10px solid #1b1f2a; border-radius: 36px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .screen.active { display: flex; }
+  .appbar { padding: 16px; font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); }
+  .appbar .back { cursor: pointer; color: var(--accent); font-size: 20px; }
+  .content { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .center { align-items: center; justify-content: center; text-align: center; }
+  .logo { width: 96px; height: 96px; border-radius: 28px; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 44px; font-weight: 700; }
+  .field { border: 1px solid var(--line); border-radius: 10px; padding: 12px; color: var(--muted); font-size: 14px; }
+  .field.err { border-color: var(--danger); }
+  .hint { color: var(--danger); font-size: 12px; margin-top: -8px; }
+  .btn { background: var(--accent); color: #fff; border: 0; border-radius: 22px; padding: 12px; font: inherit; font-weight: 600; cursor: pointer; text-align: center; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .card { border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .card.click { cursor: pointer; }
+  .card.click:hover { border-color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .grow { flex: 1; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .chip { display: inline-block; border: 1px solid var(--line); border-radius: 16px; padding: 4px 10px; font-size: 13px; margin: 2px; }
+  .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .ring { width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(var(--accent) 0 32%, var(--line) 32% 100%); display: grid; place-items: center; }
+  .ring span { width: 76px; height: 76px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-weight: 700; }
+  .check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--accent); flex: none; }
+  .check.done { background: var(--accent); }
+  .bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .tabs { display: flex; border-top: 1px solid var(--line); }
+  .tabs div { flex: 1; text-align: center; padding: 8px 0 10px; font-size: 11px; cursor: pointer; color: var(--muted); }
+  .tabs div b { display: block; font-size: 18px; }
+  .tabs div.on { color: var(--accent); }
+  .warn { background: #fff6e5; border: 1px solid #f5d399; border-radius: 12px; padding: 10px; font-size: 13px; }
+  .bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 8px; }
+  .bars i { flex: 1; background: var(--accent); border-radius: 4px 4px 0 0; }
+  .timer { width: 200px; height: 200px; border-radius: 50%; border: 10px solid var(--accent); display: grid; place-items: center; font-size: 40px; font-weight: 700; margin: 16px auto; }
+  .opt { border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 14px; cursor: pointer; }
+  .opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .steps { display: flex; gap: 6px; }
+  .steps i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+  .steps i.on { background: var(--accent); }
+  .note { font-size: 12px; color: var(--muted); text-align: center; padding: 6px; }
+  .fab { position: absolute; right: 16px; bottom: 72px; width: 52px; height: 52px; border-radius: 16px; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 26px; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>«Маршрут» — кликабельные вайрфреймы</h1>
+  <p>Нажимайте на кнопки внутри телефона или выбирайте экран в списке слева.</p>
+</header>
+<div class="layout">
+  <nav class="map" id="map"><h2>Экраны</h2></nav>
+
+  <div class="phone">
+    <!-- Splash -->
+    <section class="screen active" data-id="splash" data-title="Splash">
+      <div class="content center" style="gap:16px">
+        <div class="logo">М</div>
+        <div style="font-size:24px;font-weight:700">Маршрут</div>
+        <div class="muted">Персональный план обучения</div>
+        <div class="muted" style="margin-top:40px">Проверяем сессию…</div>
+        <button class="btn" data-go="login" style="width:200px">Далее (автопереход)</button>
+      </div>
+    </section>
+
+    <!-- Login -->
+    <section class="screen" data-id="login" data-title="Вход">
+      <div class="content" style="justify-content:center">
+        <div class="logo" style="width:64px;height:64px;font-size:30px;align-self:center">М</div>
+        <h2 style="text-align:center;margin:0">С возвращением!</h2>
+        <div class="field">Email</div>
+        <div class="field err">Пароль</div>
+        <div class="hint">Неверный email или пароль</div>
+        <div class="row muted"><div class="check done" style="width:18px;height:18px"></div> Запомнить меня</div>
+        <button class="btn" data-go="home">Войти</button>
+        <button class="btn ghost" data-go="register">Нет аккаунта? Зарегистрироваться</button>
+      </div>
+    </section>
+
+    <!-- Register -->
+    <section class="screen" data-id="register" data-title="Регистрация">
+      <div class="appbar"><span class="back" data-go="login">←</span> Регистрация</div>
+      <div class="content">
+        <div class="field">Имя</div>
+        <div class="field err">Email</div>
+        <div class="hint">Введите корректный email, например name@mail.ru</div>
+        <div class="field">Пароль</div>
+        <div class="muted">Не менее 8 символов, буквы и цифры</div>
+        <div class="field err">Повторите пароль</div>
+        <div class="hint">Пароли не совпадают</div>
+        <button class="btn" data-go="onb1">Создать аккаунт</button>
+        <button class="btn ghost" data-go="login">Уже есть аккаунт? Войти</button>
+      </div>
+    </section>
+
+    <!-- Onboarding 1 -->
+    <section class="screen" data-id="onb1" data-title="Онбординг: направление">
+      <div class="appbar">Новый план</div>
+      <div class="content">
+        <div class="steps"><i class="on"></i><i></i><i></i></div>
+        <b>Что хотите изучить?</b>
+        <div class="card click row" data-go="onb2"><div class="logo" style="width:40px;height:40px;font-size:18px;border-radius:12px">F</div><div class="grow"><b>Flutter-разработчик</b><div class="muted">20 тем · ≈ 108 ч</div></div></div>
+        <div class="card click row" data-go="onb2"><div class="logo" style="width:40px;height:40px;font-size:18px;border-radius:12px;background:#2e7d32">Py</div><div class="grow"><b>Python с нуля</b><div class="muted">18 тем · ≈ 87 ч</div></div></div>
+        <div class="card click row" data-go="onb2"><div class="logo" style="width:40px;height:40px;font-size:18px;border-radius:12px;background:#c62828">En</div><div class="grow"><b>Английский A1 → B1</b><div class="muted">19 тем · ≈ 81 ч</div></div></div>
+        <div class="card click row" data-go="onb2"><div class="logo" style="width:40px;height:40px;font-size:18px;border-radius:12px;background:#6a1b9a">A</div><div class="grow"><b>Алгоритмы и структуры данных</b><div class="muted">18 тем · ≈ 83 ч</div></div></div>
+      </div>
+    </section>
+
+    <!-- Onboarding 2 -->
+    <section class="screen" data-id="onb2" data-title="Онбординг: тест">
+      <div class="appbar"><span class="back" data-go="onb1">←</span> Диагностика</div>
+      <div class="content">
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+        <div class="muted">Вопрос 3 из 9 · тема «Асинхронность»</div>
+        <b>Что вернёт функция с модификатором async?</b>
+        <div class="opt">Stream</div>
+        <div class="opt sel">Future</div>
+        <div class="opt">void всегда</div>
+        <div class="opt">Не знаю</div>
+        <button class="btn" data-go="onb3">Далее</button>
+        <button class="btn ghost" data-go="onb3">Я новичок — пропустить тест</button>
+      </div>
+    </section>
+
+    <!-- Onboarding 3 -->
+    <section class="screen" data-id="onb3" data-title="Онбординг: расписание">
+      <div class="appbar"><span class="back" data-go="onb2">←</span> Расписание</div>
+      <div class="content">
+        <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        <b>Сколько часов в неделю?</b>
+        <div class="row"><div class="bar grow"><i style="width:40%"></i></div><b>8 ч</b></div>
+        <b>Учебные дни</b>
+        <div><span class="chip on">Пн</span><span class="chip">Вт</span><span class="chip on">Ср</span><span class="chip">Чт</span><span class="chip on">Пт</span><span class="chip on">Сб</span><span class="chip">Вс</span></div>
+        <b>Дедлайн</b>
+        <div class="field">20.12.2026 📅</div>
+        <button class="btn" data-go="preview">Сформировать план</button>
+      </div>
+    </section>
+
+    <!-- Preview -->
+    <section class="screen" data-id="preview" data-title="Предпросмотр плана">
+      <div class="appbar"><span class="back" data-go="onb3">←</span> Ваш план готов</div>
+      <div class="content">
+        <div class="card"><b>Flutter-разработчик</b><div class="muted">14 тем осталось · 6 исключено по тесту</div><div class="muted">Окончание: 05.01.2027</div></div>
+        <div class="warn">⚠ План не укладывается в дедлайн 20.12.2026. Нужно ≈ 10,5 ч в неделю вместо 8.</div>
+        <div class="muted">Порядок тем:</div>
+        <div class="card">1. Асинхронность: Future, Stream</div>
+        <div class="card">2. Навигация и go_router</div>
+        <div class="card">3. setState и InheritedWidget</div>
+        <div class="card">4. Riverpod …</div>
+        <button class="btn" data-go="home">Начать обучение</button>
+        <button class="btn outline" data-go="onb3">Изменить расписание</button>
+      </div>
+    </section>
+
+    <!-- Home -->
+    <section class="screen" data-id="home" data-title="Главная">
+      <div class="appbar">Привет, Алия 👋</div>
+      <div class="content">
+        <div class="card row"><div class="ring"><span>32%</span></div><div class="grow"><b>Flutter-разработчик</b><div class="muted">38 из 108 ч · серия 4 дня 🔥</div><div class="muted">До дедлайна 70 дней</div></div></div>
+        <div class="warn row"><span class="grow">Пропущено 2 занятия</span><button class="btn" data-go="plan" style="padding:6px 12px">Перестроить</button></div>
+        <b>Сегодня, 11 октября</b>
+        <div class="card click row" data-go="session"><div class="check done"></div><div class="grow"><s>Асинхронность: Future</s><div class="muted">1 ч · изучение</div></div></div>
+        <div class="card click row" data-go="session"><div class="check"></div><div class="grow">Асинхронность: Stream<div class="muted">1 ч · изучение</div></div></div>
+        <div class="card click row" data-go="session"><div class="check"></div><div class="grow">Повторение: ООП в Dart<div class="muted">15 мин · повторение</div></div></div>
+        <button class="btn outline" data-go="pomodoro">▶ Запустить Pomodoro</button>
+      </div>
+      <div class="tabs"><div class="on" data-go="home"><b>⌂</b>Главная</div><div data-go="plan"><b>☰</b>План</div><div data-go="topics"><b>◎</b>Темы</div><div data-go="stats"><b>▥</b>Статистика</div><div data-go="profile"><b>☺</b>Профиль</div></div>
+    </section>
+
+    <!-- Plan -->
+    <section class="screen" data-id="plan" data-title="План">
+      <div class="appbar"><span class="grow">План</span><span class="muted" style="cursor:pointer" data-go="plans">Мои планы ▾</span></div>
+      <div class="content">
+        <div class="field">🔍 Поиск по темам</div>
+        <div><span class="chip on">Все</span><span class="chip">Сегодня</span><span class="chip">Предстоящие</span><span class="chip">Пропущенные</span><span class="chip">Выполненные</span></div>
+        <div class="muted">Пн, 13 октября</div>
+        <div class="card click row" data-go="session"><div class="check"></div><div class="grow">Навигация и go_router<div class="muted">1,5 ч</div></div></div>
+        <div class="muted">Ср, 15 октября</div>
+        <div class="card click row" data-go="session"><div class="check"></div><div class="grow">Навигация и go_router<div class="muted">1 ч</div></div></div>
+        <div class="card click row" data-go="session"><div class="check"></div><div class="grow">Повторение: Асинхронность<div class="muted">15 мин</div></div></div>
+      </div>
+      <div class="fab" data-go="plans">⟳</div>
+      <div class="tabs"><div data-go="home"><b>⌂</b>Главная</div><div class="on" data-go="plan"><b>☰</b>План</div><div data-go="topics"><b>◎</b>Темы</div><div data-go="stats"><b>▥</b>Статистика</div><div data-go="profile"><b>☺</b>Профиль</div></div>
+    </section>
+
+    <!-- Plans -->
+    <section class="screen" data-id="plans" data-title="Мои планы">
+      <div class="appbar"><span class="back" data-go="plan">←</span> Мои планы</div>
+      <div class="content">
+        <div class="card row"><div class="grow"><b>Flutter-разработчик</b> <span class="chip on">активный</span><div class="bar" style="margin-top:6px"><i style="width:32%"></i></div></div><span class="muted">⋮</span></div>
+        <div class="card row"><div class="grow"><b>Английский A1 → B1</b><div class="bar" style="margin-top:6px"><i style="width:10%"></i></div></div><span class="muted">⋮</span></div>
+        <div class="muted">⋮ — сделать активным, переименовать, перестроить, удалить</div>
+        <button class="btn" data-go="onb1">+ Новый план</button>
+      </div>
+    </section>
+
+    <!-- Session -->
+    <section class="screen" data-id="session" data-title="Занятие">
+      <div class="appbar"><span class="back" data-go="home">←</span> Занятие</div>
+      <div class="content">
+        <span class="chip on">Язык Dart</span>
+        <h3 style="margin:0">Асинхронность: Future, async/await, Stream</h3>
+        <div class="muted">Сб, 11 октября · 1 ч · часть 2 из 3</div>
+        <div>Как Dart выполняет асинхронный код: event loop, Future, async/await, обработка ошибок, потоки данных Stream.</div>
+        <b>Материалы</b>
+        <div class="card">📘 Asynchronous programming — dart.dev</div>
+        <b>Заметки</b>
+        <div class="card muted">+ Добавить заметку</div>
+        <button class="btn" data-go="home">✓ Отметить выполненным</button>
+        <button class="btn outline" data-go="pomodoro">▶ Pomodoro 25 мин</button>
+      </div>
+    </section>
+
+    <!-- Pomodoro -->
+    <section class="screen" data-id="pomodoro" data-title="Pomodoro">
+      <div class="appbar"><span class="back" data-go="home">←</span> Pomodoro</div>
+      <div class="content">
+        <div class="muted" style="text-align:center">Фокус · Асинхронность: Stream</div>
+        <div class="timer">24:13</div>
+        <div class="row" style="justify-content:center;gap:12px"><button class="btn">⏸ Пауза</button><button class="btn outline">⟲ Сброс</button></div>
+        <div class="muted" style="text-align:center">Сегодня: 🍅🍅 (50 мин)</div>
+      </div>
+    </section>
+
+    <!-- Topics -->
+    <section class="screen" data-id="topics" data-title="Темы">
+      <div class="appbar">Темы</div>
+      <div class="content">
+        <div class="field">🔍 Поиск</div>
+        <div><span class="chip on">Все</span><span class="chip">★ Избранное</span><span class="chip">Язык Dart</span><span class="chip">UI</span><span class="chip">Данные</span><span class="chip">Мои</span></div>
+        <div class="card row"><div class="grow"><b>Riverpod</b><div class="muted">Состояние · 8 ч · после: setState, Асинхронность</div></div><span style="color:var(--warn)">★</span></div>
+        <div class="card row"><div class="grow"><b>Анимации</b><div class="muted">UI · 5 ч</div></div><span class="muted">☆</span></div>
+        <div class="card row"><div class="grow"><b>Firebase (моя тема)</b><div class="muted">Мои · 4 ч</div></div><span class="muted">✎ 🗑</span></div>
+      </div>
+      <div class="fab">+</div>
+      <div class="tabs"><div data-go="home"><b>⌂</b>Главная</div><div data-go="plan"><b>☰</b>План</div><div class="on" data-go="topics"><b>◎</b>Темы</div><div data-go="stats"><b>▥</b>Статистика</div><div data-go="profile"><b>☺</b>Профиль</div></div>
+    </section>
+
+    <!-- Stats -->
+    <section class="screen" data-id="stats" data-title="Статистика">
+      <div class="appbar">Статистика</div>
+      <div class="content">
+        <div class="row"><div class="card grow"><b>38 ч</b><div class="muted">изучено</div></div><div class="card grow"><b>4 дня</b><div class="muted">серия</div></div><div class="card grow"><b>12</b><div class="muted">🍅</div></div></div>
+        <b>Часы по неделям</b>
+        <div class="card"><div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:80%"></i><i style="height:45%"></i><i style="height:70%"></i><i style="height:60%"></i></div></div>
+        <b>История</b>
+        <div class="card"><div>✓ Асинхронность: Future</div><div class="muted">сегодня, 18:40</div></div>
+        <div class="card"><div>🍅 Pomodoro 25 мин</div><div class="muted">сегодня, 18:10</div></div>
+      </div>
+      <div class="tabs"><div data-go="home"><b>⌂</b>Главная</div><div data-go="plan"><b>☰</b>План</div><div data-go="topics"><b>◎</b>Темы</div><div class="on" data-go="stats"><b>▥</b>Статистика</div><div data-go="profile"><b>☺</b>Профиль</div></div>
+    </section>
+
+    <!-- Profile -->
+    <section class="screen" data-id="profile" data-title="Профиль">
+      <div class="appbar">Профиль</div>
+      <div class="content">
+        <div class="row"><div class="logo" style="width:56px;height:56px;font-size:24px;border-radius:50%">А</div><div class="grow"><b>Алия</b><div class="muted">aliya@mail.ru · с 11.10.2026</div></div></div>
+        <div class="card click" data-go="editprofile">✎ Редактировать профиль</div>
+        <div class="card">🔒 Сменить пароль</div>
+        <div class="card">📝 Мои заметки</div>
+        <div class="card row"><span class="grow">🌙 Тёмная тема</span><span class="chip on">вкл</span></div>
+        <div class="card row"><span class="grow">🔔 Напоминание в 19:00</span><span class="chip on">вкл</span></div>
+        <button class="btn outline" style="color:var(--danger);border-color:var(--danger)" data-go="login">Выйти</button>
+      </div>
+      <div class="tabs"><div data-go="home"><b>⌂</b>Главная</div><div data-go="plan"><b>☰</b>План</div><div data-go="topics"><b>◎</b>Темы</div><div data-go="stats"><b>▥</b>Статистика</div><div class="on" data-go="profile"><b>☺</b>Профиль</div></div>
+    </section>
+
+    <!-- Edit profile -->
+    <section class="screen" data-id="editprofile" data-title="Редактирование профиля">
+      <div class="appbar"><span class="back" data-go="profile">←</span> Редактировать профиль</div>
+      <div class="content">
+        <div class="field">Имя: Алия</div>
+        <div class="field">Email: aliya@mail.ru</div>
+        <div class="muted">Цвет аватара</div>
+        <div class="row"><div class="check done"></div><div class="check" style="border-color:#2e7d32"></div><div class="check" style="border-color:#c62828"></div><div class="check" style="border-color:#6a1b9a"></div></div>
+        <button class="btn" data-go="profile">Сохранить</button>
+      </div>
+    </section>
+  </div>
+</div>
+<p class="note">Вайрфреймы показывают структуру и навигацию. Итоговый дизайн выполнен в Material 3 в самом приложении.</p>
+<script>
+  const screens = [...document.querySelectorAll('.screen')];
+  const map = document.getElementById('map');
+  function go(id) {
+    screens.forEach(s => s.classList.toggle('active', s.dataset.id === id));
+    map.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+    history.replaceState(null, '', '#' + id);
+  }
+  screens.forEach(s => {
+    const b = document.createElement('button');
+    b.textContent = s.dataset.title;
+    b.dataset.id = s.dataset.id;
+    b.onclick = () => go(s.dataset.id);
+    map.appendChild(b);
+  });
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-go]');
+    if (t) go(t.dataset.go);
+  });
+  document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => {
+    o.parentElement.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
+    o.classList.add('sel');
+  }));
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('on')));
+  go(location.hash.slice(1) || 'splash');
+</script>
+</body>
+</html>
