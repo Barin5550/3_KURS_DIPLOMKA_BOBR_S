@@ -155,7 +155,7 @@ flutter test tool/screenshots/qa_matrix_test.dart   # снимки в build/qa_s
 
 Готовый документ: [Курсовая_Маршрут.docx](docs/coursework/Курсовая_Маршрут.docx)
 и [PDF](docs/coursework/Курсовая_Маршрут.pdf). Пометки `[ПРОВЕРИТЬ]` выделены жёлтым:
-их нужно заполнить или проверить перед сдачей (титульный лист, число страниц у части книг).
+их нужно заполнить перед сдачей (название колледжа, город и год на титульном листе, стандарт списка литературы).
 
 Документ собирается из Markdown-файлов `docs/coursework/*.md`:
 
@@ -168,6 +168,8 @@ python3 tool/coursework/build_coursework.py --pdf
 
 Таблицы «критерий → где реализовано → как показать»:
 [1 семестр](docs/criteria_semester1.md), [2 семестр](docs/criteria_semester2.md).
+Они же одним документом для защиты: [Отчёт_по_критериям.docx](docs/Отчёт_по_критериям.docx)
+и [PDF](docs/Отчёт_по_критериям.pdf), сборка `python3 tool/coursework/build_criteria_report.py --pdf`.
 
 Иконки приложения для всех платформ генерируются скриптом `python3 tool/icons/generate_icons.py`.
 

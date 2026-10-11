@@ -2,19 +2,19 @@
 
 > Список оформлен по ГОСТ 7.1-2003 «Библиографическая запись. Библиографическое описание», электронные ресурсы описаны по ГОСТ 7.82-2001.
 > [ПРОВЕРИТЬ] Уточнить в методичке колледжа, какой стандарт требуется. Возможно, нужен ГОСТ Р 7.0.100-2018: тогда меняется только расстановка знаков, состав сведений остаётся тем же.
-> Дата обращения ко всем электронным ресурсам: 11.10.2026. Перед сдачей проверить, открываются ли ссылки, и обновить дату.
+> Дата обращения ко всем электронным ресурсам: 11.10.2026. Число страниц книг сверено с библиотечными каталогами и сайтами издательств.
 
 ## Книги и статьи
 
 1. Кормен, Т. Х. Алгоритмы: построение и анализ / Т. Х. Кормен, Ч. И. Лейзерсон, Р. Л. Ривест, К. Штайн ; пер. с англ. – 3-е изд. – М. : Вильямс, 2013. – 1328 с.
 2. Мартин, Р. Чистая архитектура. Искусство разработки программного обеспечения / Р. Мартин ; пер. с англ. – СПб. : Питер, 2018. – 352 с.
 3. Cepeda, N. J. Distributed practice in verbal recall tasks: A review and quantitative synthesis / N. J. Cepeda, H. Pashler, E. Vul, J. T. Wixted, D. Rohrer // Psychological Bulletin. – 2006. – Vol. 132, № 3. – P. 354–380.
-4. Cirillo, F. The Pomodoro Technique: The Acclaimed Time-Management System That Has Transformed How We Work / F. Cirillo. – New York : Currency, 2018. – 144 p. [ПРОВЕРИТЬ число страниц]
-5. Ebbinghaus, H. Über das Gedächtnis: Untersuchungen zur experimentellen Psychologie / H. Ebbinghaus. – Leipzig : Duncker & Humblot, 1885. – 169 S. [ПРОВЕРИТЬ число страниц]
+4. Cirillo, F. The Pomodoro Technique: The Acclaimed Time-Management System That Has Transformed How We Work / F. Cirillo. – New York : Currency, 2018. – 152 p.
+5. Ebbinghaus, H. Über das Gedächtnis: Untersuchungen zur experimentellen Psychologie / H. Ebbinghaus. – Leipzig : Duncker & Humblot, 1885. – IX, 169 S.
 6. Kahn, A. B. Topological sorting of large networks / A. B. Kahn // Communications of the ACM. – 1962. – Vol. 5, № 11. – P. 558–562.
-7. Napoli, M. L. Beginning Flutter: A Hands On Guide to App Development / M. L. Napoli. – Indianapolis : Wiley, 2019. – 528 p. [ПРОВЕРИТЬ число страниц]
-8. Secure Hash Standard (SHS) : Federal Information Processing Standards Publication 180-4. – Gaithersburg : National Institute of Standards and Technology, 2015. – 36 p. – DOI 10.6028/NIST.FIPS.180-4. [ПРОВЕРИТЬ число страниц]
-9. Windmill, E. Flutter in Action / E. Windmill. – Shelter Island : Manning, 2020. – 368 p. [ПРОВЕРИТЬ число страниц]
+7. Napoli, M. L. Beginning Flutter: A Hands On Guide to App Development / M. L. Napoli. – Indianapolis : Wiley, 2019. – XXVIII, 500 p.
+8. Secure Hash Standard (SHS) : Federal Information Processing Standards Publication 180-4. – Gaithersburg : National Institute of Standards and Technology, 2015. – 36 p. – DOI 10.6028/NIST.FIPS.180-4.
+9. Windmill, E. Flutter in Action / E. Windmill. – Shelter Island : Manning, 2020. – 368 p.
 
 ## Электронные ресурсы
 
@@ -50,5 +50,5 @@
 39. Sound null safety [Электронный ресурс] // Dart documentation. – Режим доступа: https://dart.dev/null-safety (дата обращения: 11.10.2026).
 40. Stepik [Электронный ресурс] : образовательная платформа. – Режим доступа: https://stepik.org (дата обращения: 11.10.2026).
 41. Todoist [Электронный ресурс] : менеджер задач. – Режим доступа: https://todoist.com (дата обращения: 11.10.2026).
-42. Understanding Google Play's app account deletion requirements [Электронный ресурс] // Play Console Help. – Режим доступа: https://support.google.com/googleplay/android-developer/answer/13327111 (дата обращения: 11.10.2026). [ПРОВЕРИТЬ ссылку]
+42. Understanding Google Play's app account deletion requirements [Электронный ресурс] // Play Console Help. – Режим доступа: https://support.google.com/googleplay/android-developer/answer/13327111 (дата обращения: 11.10.2026).
 43. Use window size classes [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes (дата обращения: 11.10.2026).
