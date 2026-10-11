@@ -16,7 +16,7 @@
 | Ф4 | Диагностический тест: известные темы исключаются из плана | Шаг 2 онбординга, `KnowledgeEstimator` |
 | Ф5 | Настройка расписания: часы в неделю, учебные дни, дедлайн | Шаг 3 онбординга, экран настроек плана |
 | Ф6 | Автоматическое построение плана по дням с учётом зависимостей тем, лимита часов и интервальных повторений | `PlanGenerator`, `Scheduler` |
-| Ф7 | Проверка дедлайна и подсказка о нужном числе часов | `PlanGenerator.requiredHoursPerWeek` |
+| Ф7 | Проверка дедлайна и подсказка о нужном числе часов | `PlanGenerator`, метод `requiredHoursPerWeek` |
 | Ф8 | Отметка занятий, перестройка плана при отставании | Главная, «План», `Replanner` |
 | Ф9 | Несколько планов, выбор активного, переименование, удаление | «Мои планы» |
 | Ф10 | Свои темы, избранное, поиск и фильтр по категориям | Вкладка «Темы» |
@@ -40,29 +40,25 @@
 Приложение построено по принципам чистой архитектуры [2] и рекомендациям команды Flutter по архитектуре приложений [21]. Код разделён на три слоя (рисунок 2.1).
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph P["Слой представления (presentation)"]
-        S["Экраны и виджеты"]
-        C["Провайдеры Riverpod<br/>AuthController, OnboardingController"]
+        direction TB
+        S["Экраны и виджеты"] --> C["Провайдеры Riverpod<br/>AuthController,<br/>OnboardingController"]
     end
     subgraph D["Слой предметной области (domain)"]
-        E["Сущности<br/>Topic, StudyPlan, StudySession"]
-        A["Алгоритмы<br/>topologicalSort, Scheduler,<br/>PlanGenerator, Replanner"]
-        R["Интерфейсы репозиториев"]
-        U["PlanService"]
+        direction TB
+        U["PlanService"] --> A["Алгоритмы<br/>topologicalSort, Scheduler,<br/>PlanGenerator, Replanner"]
+        A ~~~ R["Интерфейсы<br/>репозиториев"]
+        R ~~~ E["Сущности<br/>Topic, StudyPlan,<br/>StudySession"]
     end
     subgraph DA["Слой данных (data)"]
-        DB["База SQLite (drift)"]
-        RI["Реализации репозиториев"]
-        J["Каталог тем (JSON)"]
-        N["Уведомления, настройки"]
+        direction TB
+        RI["Реализации<br/>репозиториев"] --> DB["База SQLite<br/>(drift)"]
+        DB ~~~ J["Каталог тем<br/>(JSON)"]
+        J ~~~ N["Уведомления,<br/>настройки"]
     end
-    S --> C --> U --> A
-    U --> R
-    RI -.реализует.-> R
-    RI --> DB
-    RI --> J
-    C --> N
+    P -- "вызывает<br/>сценарии" --> D
+    DA -. "реализует<br/>интерфейсы" .-> D
 ```
 
 Рисунок 2.1 — Слои приложения и направление зависимостей
@@ -101,9 +97,13 @@ flowchart TB
 
 ## 2.3 Проектирование базы данных
 
-Данные хранятся в локальной базе SQLite, работа с ней ведётся через библиотеку drift [15]. Структура базы показана на рисунке 2.2, назначение таблиц — в таблице 2.3.
+Данные хранятся в локальной базе SQLite, работа с ней ведётся через библиотеку drift [15]. Структура базы показана на рисунке 2.2: на диаграмме оставлены ключи и основные поля, чтобы её можно было прочитать на странице. Назначение таблиц описано в таблице 2.3, полное описание всех полей — в приложении Е.
 
 ```mermaid
+---
+config:
+  themeCSS: ".edgeLabel, .edgeLabel p, .labelBkg { font-size: 16px; }"
+---
 erDiagram
     direction LR
     USERS ||--o{ PLANS : "имеет"
@@ -116,90 +116,55 @@ erDiagram
 
     USERS {
         int id PK
-        text name
         text email UK
+        text name
         text password_hash
         text salt
-        int avatar_color
-        bool reminder_enabled
-        int reminder_hour
-        int reminder_minute
-        datetime created_at
     }
     PLANS {
         int id PK
         int user_id FK
-        text direction_id
         text title
         real hours_per_week
-        text study_days
-        datetime start_date
         datetime deadline
-        text known_topic_ids
         bool is_active
-        datetime created_at
     }
     PLAN_TOPICS {
         int id PK
         int plan_id FK
         text topic_id
-        text title
-        text category
-        int minutes
-        int level
-        text prerequisites
         int position
     }
     SESSIONS {
         int id PK
         int plan_id FK
-        text topic_id
-        text topic_title
-        text category
         datetime date
-        int minutes
         text kind
-        int part
-        int total_parts
         bool is_done
-        datetime completed_at
     }
     CUSTOM_TOPICS {
         int id PK
         int user_id FK
-        text direction_id
         text title
-        text description
-        int minutes
-        text category
-        text prerequisites
-        datetime created_at
     }
     NOTES {
         int id PK
         int user_id FK
         text title
-        text body
         text topic_id
-        text topic_title
-        datetime created_at
-        datetime updated_at
     }
     FAVORITES {
         int user_id PK, FK
         text topic_id PK
-        datetime created_at
     }
     POMODORO_LOGS {
         int id PK
         int user_id FK
         int minutes
-        text topic_title
-        datetime completed_at
     }
 ```
 
-Рисунок 2.2 — ER-диаграмма базы данных
+Рисунок 2.2 — ER-диаграмма базы данных (ключи и основные поля)
 
 Таблица 2.3 — Таблицы базы данных
 
@@ -228,7 +193,7 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    A([Начало]) --> B["Граф тем направления<br/>+ свои темы пользователя"]
+    A([Начало]) --> B["Шаг 1. Граф тем направления<br/>и свои темы пользователя"]
     B --> C["Шаг 2. Исключить темы,<br/>известные по тесту"]
     C --> D["Шаг 3. Упорядочить темы<br/>алгоритмом Кана"]
     D --> E{"Есть цикл?"}
@@ -331,16 +296,9 @@ if (result.length != topics.length) throw CycleDetectedException(...);
 ```mermaid
 flowchart LR
     Splash --> Вход
-    Вход <--> Регистрация
-    Вход --> Главная
-    subgraph Вкладки
-        Главная
-        План
-        Темы
-        Статистика
-        Профиль
-    end
-    Главная --> Онбординг["Онбординг:<br/>направление → тест →<br/>расписание → предпросмотр"]
+    Регистрация <--> Вход
+    Вход --> Главная & План & Статистика & Темы & Профиль
+    Главная --> Онбординг["Онбординг: направление → тест →<br/>расписание → предпросмотр"]
     Главная --> Занятие
     Главная --> Pomodoro
     План --> Занятие
@@ -349,11 +307,9 @@ flowchart LR
     Темы --> Тема
     Темы --> СвояТема["Своя тема"]
     Тема --> Заметка
-    Профиль --> Редактирование
+    Профиль --> Редактирование["Редактирование профиля"]
     Профиль --> Пароль["Смена пароля"]
-    Профиль --> Заметки
-    Профиль --> Планы
-    Профиль --> Вход
+    Профиль --> Заметки["Мои заметки"]
 ```
 
 Рисунок 2.4 — Карта экранов

@@ -23,7 +23,7 @@ import shutil
 import subprocess
 import sys
 
-from PIL import Image
+from PIL import Image, ImageChops
 from docx import Document
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -107,15 +107,37 @@ def render_mermaid(name, text, mmdc, puppeteer):
             src = os.path.join(BUILD, base + ".mmd")
             with open(src, "w", encoding="utf-8") as f:
                 f.write(m.group(1))
-            cmd = [mmdc, "-i", src, "-o", png, "-s", "3", "-b", "white"]
+            cmd = [
+                mmdc, "-i", src, "-o", png, "-s", "3", "-b", "white",
+                # Нейтральная (чёрно-белая) тема и крупный шрифт: схемы
+                # читаются после уменьшения до ширины страницы и при печати.
+                "-c", os.path.join(os.path.dirname(__file__), "mermaid_config.json"),
+            ]
             if puppeteer:
                 cmd += ["-p", puppeteer]
             subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL)
+            trim_margins(png)
         if not os.path.exists(png):
             sys.exit(f"Нет {png}: укажите --mmdc, чтобы нарисовать диаграммы")
         return f"![](diagrams/{base}.png)"
 
     return MERMAID.sub(repl, text)
+
+
+def trim_margins(png, margin=30):
+    """Обрезает белые поля: mmdc рисует схему в холсте шириной 800 px,
+    и узкая схема оказывается посреди пустого листа, а в документе
+    выглядит мелкой."""
+    with Image.open(png) as im:
+        rgb = im.convert("RGB")
+    box = ImageChops.difference(rgb, Image.new("RGB", rgb.size, "white")).getbbox()
+    if box is None:
+        return
+    left, top, right, bottom = box
+    rgb.crop((
+        max(left - margin, 0), max(top - margin, 0),
+        min(right + margin, rgb.width), min(bottom + margin, rgb.height),
+    )).save(png)
 
 
 # ---------------------------------------------------------------------------
@@ -140,8 +162,8 @@ def size_attr(rel):
     w, h = image_size(rel)
     if is_phone_shot(rel):
         return "{height=11cm}"
-    # диаграмма или окно компьютера: не шире 16 см и не выше 22 см
-    width = min(16.0, 22.0 * w / h)
+    # диаграмма или окно компьютера: во всю ширину текста, но не выше 22 см
+    width = min(TEXT_WIDTH_CM, 22.0 * w / h)
     return "{width=%.1fcm}" % width
 
 
@@ -298,6 +320,14 @@ def setup_styles(doc):
     if verb is not None:
         set_font(verb, MONO, 12)
 
+    # Строки содержания: по левому краю, без абзацного отступа
+    # (иначе они наследуют выравнивание по ширине от обычного текста).
+    for level, indent in ((1, 0), (2, 0.5), (3, 1.0)):
+        toc = toc_style(doc, level)
+        set_font(toc, FONT, 14)
+        para_format(toc.paragraph_format, WD_ALIGN_PARAGRAPH.LEFT, Cm(0))
+        toc.paragraph_format.left_indent = Cm(indent)
+
     for name in ("Hyperlink",):
         st = style(doc, name)
         if st is not None:
@@ -305,14 +335,47 @@ def setup_styles(doc):
             st.font.underline = False
 
 
+def toc_style(doc, level):
+    """Встроенный стиль Word «toc N» (в LibreOffice — «Contents N»)."""
+    for st in doc.styles:
+        if st.type == WD_STYLE_TYPE.PARAGRAPH and st.name.lower() == f"toc {level}":
+            return st
+    st = doc.styles.add_style(f"TOC {level}", WD_STYLE_TYPE.PARAGRAPH)
+    st.element.set(qn("w:styleId"), f"TOC{level}")
+    st.element.name_val = f"toc {level}"
+    st.base_style = style(doc, "Normal")
+    return st
+
+
+def set_margins(section):
+    section.page_width = Cm(21)
+    section.page_height = Cm(29.7)
+    section.left_margin = Cm(3)
+    section.right_margin = Cm(1.5)
+    section.top_margin = Cm(2)
+    section.bottom_margin = Cm(2)
+
+
+def reference_doc():
+    """Стандартный образец pandoc с полями по ГОСТ: pandoc не делает рисунки
+    шире текста образца, а в стандартном образце текст уже, чем у нас."""
+    path = os.path.join(BUILD, "reference.docx")
+    data = subprocess.run(
+        ["pandoc", "--print-default-data-file", "reference.docx"],
+        check=True, capture_output=True,
+    ).stdout
+    with open(path, "wb") as f:
+        f.write(data)
+    doc = Document(path)
+    for section in doc.sections:
+        set_margins(section)
+    doc.save(path)
+    return path
+
+
 def setup_page(doc):
     for section in doc.sections:
-        section.page_width = Cm(21)
-        section.page_height = Cm(29.7)
-        section.left_margin = Cm(3)
-        section.right_margin = Cm(1.5)
-        section.top_margin = Cm(2)
-        section.bottom_margin = Cm(2)
+        set_margins(section)
         section.different_first_page_header_footer = True
         footer = section.footer.paragraphs[0]
         footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -342,6 +405,23 @@ def cell_paragraphs(table):
             yield from cell.paragraphs
 
 
+LONG_TOKEN = re.compile(r"\S{15,}")
+WORD_GAP = re.compile(r"[\s\u200b]+")
+
+
+def add_break_opportunities(table):
+    """Разрешает перенос длинных имён после «_» и «.» (невидимым пробелом
+    нулевой ширины), иначе shared_preferences или PlanGenerator.method
+    в узком столбце разрываются посреди слова."""
+    def soften(m):
+        return re.sub(r"(?<=[_.])(?=[^\s_.])", "\u200b", m.group(0))
+
+    for p in cell_paragraphs(table):
+        for run in p.runs:
+            if LONG_TOKEN.search(run.text):
+                run.text = LONG_TOKEN.sub(soften, run.text)
+
+
 def has_image(paragraph):
     return bool(paragraph._p.xpath(".//w:drawing"))
 
@@ -362,9 +442,82 @@ def set_borders(table, visible):
         el.set(qn("w:color"), "000000")
 
 
+TEXT_WIDTH_CM = 16.5  # 21 см минус поля 3 и 1,5 см
+CHAR_CM = 0.22  # средняя ширина символа Times New Roman 12 пт
+SMALL_TABLE_ROWS = 12  # таблицы не длиннее этого переносятся на страницу целиком
+
+
+def column_widths(table):
+    """Ширины столбцов по содержимому: узкий столбец «№», широкий для текста.
+
+    pandoc делает все столбцы одинаковыми, из-за чего короткие столбцы
+    занимают много места, а в текстовых слова переносятся посреди слова.
+    """
+    rows = [[cell.text for cell in row.cells] for row in table.rows]
+    count = max(len(r) for r in rows)
+    prefer, minimum = [], []
+    for j in range(count):
+        texts = [r[j] for r in rows if j < len(r)]
+        lengths = [len(t) for t in texts] or [1]
+        longest = max(lengths)
+        mean = sum(lengths) / len(lengths)
+        word = max((len(w) for t in texts for w in WORD_GAP.split(t)), default=1)
+        prefer.append(max(0.5 * mean + 0.5 * min(longest, 80), 2))
+        # Самое длинное слово с запасом: буквы шире среднего, плюс поля ячейки.
+        minimum.append(min(word * (CHAR_CM + 0.03) + 0.6, 4.5))
+    widths = [TEXT_WIDTH_CM * p / sum(prefer) for p in prefer]
+    # Столбцы уже самого длинного слова расширяем за счёт остальных.
+    for _ in range(count):
+        short = [j for j in range(count) if widths[j] < minimum[j] - 1e-6]
+        if not short:
+            break
+        for j in short:
+            widths[j] = minimum[j]
+        fixed = sum(widths[j] for j in short)
+        rest = [j for j in range(count) if j not in short]
+        if not rest:
+            break
+        rest_pref = sum(prefer[j] for j in rest)
+        for j in rest:
+            widths[j] = max(
+                (TEXT_WIDTH_CM - fixed) * prefer[j] / rest_pref, minimum[j]
+            )
+    scale = TEXT_WIDTH_CM / sum(widths)
+    return [w * scale for w in widths]
+
+
+def set_column_widths(table, widths):
+    tbl = table._tbl
+    tbl_pr = tbl.tblPr
+    for tag in ("w:tblW", "w:tblLayout"):
+        el = tbl_pr.find(qn(tag))
+        if el is not None:
+            tbl_pr.remove(el)
+    tbl_w = OxmlElement("w:tblW")
+    tbl_w.set(qn("w:w"), str(int(sum(widths) * 567)))
+    tbl_w.set(qn("w:type"), "dxa")
+    tbl_pr.append(tbl_w)
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tbl_pr.append(layout)
+    grid = tbl.tblGrid
+    for col, w in zip(grid.findall(qn("w:gridCol")), widths):
+        col.set(qn("w:w"), str(int(w * 567)))
+    for row in table.rows:
+        # Строка таблицы не разрывается между страницами.
+        tr_pr = row._tr.get_or_add_trPr()
+        if tr_pr.find(qn("w:cantSplit")) is None:
+            tr_pr.append(OxmlElement("w:cantSplit"))
+        for cell, w in zip(row.cells, widths):
+            cell.width = Cm(w)
+
+
 def format_tables(doc):
     for table in doc.tables:
         figure = any(has_image(p) for p in cell_paragraphs(table))
+        if not figure:
+            add_break_opportunities(table)
+            set_column_widths(table, column_widths(table))
         # Отступ между таблицей и следующим абзацем.
         after = table._tbl.getnext()
         if after is not None and after.tag == qn("w:p"):
@@ -389,11 +542,28 @@ def format_tables(doc):
                                 set_font(run, FONT, 12)
                             if r == 0:
                                 run.font.bold = True
+                        # Небольшую таблицу не разрываем между страницами.
+                        if len(table.rows) <= SMALL_TABLE_ROWS and r < len(table.rows) - 1:
+                            p.paragraph_format.keep_with_next = True
 
 
 def format_paragraphs(doc):
+    section = None
     for p in doc.paragraphs:
         text = p.text
+        if p.style.name == "Heading 1":
+            section = text.strip()
+        in_references = section == "СПИСОК ИСПОЛЬЗОВАННОЙ ЛИТЕРАТУРЫ"
+        in_appendix = section is not None and section.startswith("ПРИЛОЖЕНИЕ")
+        if p.style.name == "Source Code":
+            # В приложениях строки кода до 82 символов: при 9 пт они
+            # помещаются в ширину текста и не переносятся.
+            for run in p.runs:
+                run.font.size = Pt(9 if in_appendix else 10)
+        elif in_references and p._p.pPr is not None and p._p.pPr.numPr is not None:
+            # Источники — по левому краю: длинный адрес не переносится,
+            # и при выравнивании по ширине между словами появляются дыры.
+            p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.LEFT
         if has_image(p):
             para_format(p.paragraph_format, WD_ALIGN_PARAGRAPH.CENTER, Cm(0), spacing=1.0, before=6)
             p.paragraph_format.keep_with_next = True
@@ -567,7 +737,7 @@ def main():
     raw = os.path.join(BUILD, "raw.docx")
     subprocess.run(
         ["pandoc", combined, "-f", "markdown", "-t", "docx", "--no-highlight",
-         "--resource-path", SRC, "-o", raw],
+         "--resource-path", SRC, "--reference-doc", reference_doc(), "-o", raw],
         check=True,
     )
     postprocess(raw, OUT_DOCX)
