@@ -1,0 +1,115 @@
+# Проверка и сборка приложения «Маршрут».
+#
+# 1. test     — flutter analyze, модульные и виджет-тесты, интеграционный тест
+#               настоящего приложения (Linux, виртуальный экран xvfb).
+# 2. android  — релизный APK (артефакт marshrut-android-apk).
+# 3. windows  — релизная сборка для Windows (артефакт marshrut-windows).
+#
+# Готовые файлы скачиваются на странице запуска: вкладка Actions → запуск →
+# раздел Artifacts. При публикации тега вида v1.0.0 они дополнительно
+# прикладываются к релизу на странице Releases.
+name: Сборка и тесты
+
+on:
+  push:
+    branches: [main, master, 'claude/**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.7'
+
+jobs:
+  test:
+    name: Анализ и тесты
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Форматирование
+        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
+      - name: Статический анализ
+        run: flutter analyze
+      - name: Модульные и виджет-тесты
+        run: flutter test
+      - name: Зависимости для сборки под Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev xvfb
+      - name: Интеграционный тест (настоящее приложение)
+        run: xvfb-run -a -s "-screen 0 1280x1024x24" flutter test integration_test -d linux
+
+  android:
+    name: APK для Android
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Сборка релизного APK
+        run: flutter build apk --release
+      - name: Переименование
+        run: cp build/app/outputs/flutter-apk/app-release.apk marshrut-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marshrut-android-apk
+          path: marshrut-release.apk
+          if-no-files-found: error
+
+  windows:
+    name: Сборка для Windows
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Сборка релизной версии
+        run: flutter build windows --release
+      - name: Архив
+        shell: pwsh
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath marshrut-windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marshrut-windows
+          path: marshrut-windows.zip
+          if-no-files-found: error
+
+  release:
+    name: Релиз по тегу
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            marshrut-release.apk
+            marshrut-windows.zip

@@ -87,8 +87,10 @@ void main() {
     await tester.enterText(find.byKey(const Key('reg_confirm')), 'demo2026');
     await tap(tester, find.byKey(const Key('reg_submit')));
 
-    // Вход.
-    await waitFor(tester, find.text('demo@mail.ru'));
+    // Вход. Регистрация считает хэш PBKDF2 в фоновом изоляте, поэтому ждём
+    // именно экран входа, а не текст email (он есть и в форме регистрации).
+    await waitFor(tester, find.byKey(const Key('login_password')));
+    expect(find.text('demo@mail.ru'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('login_password')), 'demo2026');
     await tap(tester, find.byKey(const Key('login_submit')));
     await waitFor(tester, find.byKey(const Key('home_empty')));
