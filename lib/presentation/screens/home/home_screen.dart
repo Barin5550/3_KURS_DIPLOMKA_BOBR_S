@@ -31,24 +31,26 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: planAsync.when(
-        loading: () => const LoadingView(),
-        error: (e, _) => ErrorView(
-          error: e,
-          onRetry: () => ref.invalidate(activePlanProvider),
+      body: ContentFrame(
+        child: planAsync.when(
+          loading: () => const LoadingView(),
+          error: (e, _) => ErrorView(
+            error: e,
+            onRetry: () => ref.invalidate(activePlanProvider),
+          ),
+          data: (plan) => plan == null
+              ? EmptyState(
+                  key: const Key('home_empty'),
+                  icon: Icons.route,
+                  title: 'У вас пока нет плана',
+                  message:
+                      'Выберите направление, пройдите короткий тест и укажите, '
+                      'сколько времени готовы уделять учёбе.',
+                  actionLabel: 'Создать план',
+                  onAction: () => context.push('/onboarding'),
+                )
+              : _HomeBody(plan: plan),
         ),
-        data: (plan) => plan == null
-            ? EmptyState(
-                key: const Key('home_empty'),
-                icon: Icons.route,
-                title: 'У вас пока нет плана',
-                message:
-                    'Выберите направление, пройдите короткий тест и укажите, '
-                    'сколько времени готовы уделять учёбе.',
-                actionLabel: 'Создать план',
-                onAction: () => context.push('/onboarding'),
-              )
-            : _HomeBody(plan: plan),
       ),
     );
   }

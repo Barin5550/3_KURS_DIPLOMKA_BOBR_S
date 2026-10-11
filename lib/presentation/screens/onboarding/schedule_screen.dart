@@ -6,6 +6,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/schedule_settings.dart';
 import '../../providers/onboarding_controller.dart';
 import '../../providers/providers.dart';
+import '../../widgets/common.dart';
 import 'onboarding_steps.dart';
 
 /// Шаг 3 онбординга: часы в неделю, учебные дни и дедлайн.
@@ -18,24 +19,26 @@ class ScheduleScreen extends ConsumerWidget {
     final controller = ref.read(onboardingProvider.notifier);
     return Scaffold(
       appBar: AppBar(title: const Text('Расписание')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const OnboardingSteps(current: 2),
-          const SizedBox(height: 16),
-          ScheduleForm(
-            settings: settings,
-            onChanged: controller.updateSettings,
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            key: const Key('schedule_generate'),
-            onPressed: settings.studyDays.isEmpty
-                ? null
-                : () => context.push('/onboarding/preview'),
-            child: const Text('Сформировать план'),
-          ),
-        ],
+      body: ContentFrame(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const OnboardingSteps(current: 2),
+            const SizedBox(height: 16),
+            ScheduleForm(
+              settings: settings,
+              onChanged: controller.updateSettings,
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              key: const Key('schedule_generate'),
+              onPressed: settings.studyDays.isEmpty
+                  ? null
+                  : () => context.push('/onboarding/preview'),
+              child: const Text('Сформировать план'),
+            ),
+          ],
+        ),
       ),
     );
   }

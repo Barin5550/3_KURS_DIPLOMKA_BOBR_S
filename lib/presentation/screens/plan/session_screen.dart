@@ -37,19 +37,21 @@ class SessionScreen extends ConsumerWidget {
     final sessionAsync = ref.watch(_sessionProvider(sessionId));
     return Scaffold(
       appBar: AppBar(title: const Text('Занятие')),
-      body: sessionAsync.when(
-        loading: () => const LoadingView(),
-        error: (e, _) => ErrorView(error: e),
-        data: (session) {
-          if (session == null) {
-            return const EmptyState(
-              icon: Icons.event_busy,
-              title: 'Занятие не найдено',
-              message: 'Возможно, план был перестроен или удалён.',
-            );
-          }
-          return _SessionBody(session: session);
-        },
+      body: ContentFrame(
+        child: sessionAsync.when(
+          loading: () => const LoadingView(),
+          error: (e, _) => ErrorView(error: e),
+          data: (session) {
+            if (session == null) {
+              return const EmptyState(
+                icon: Icons.event_busy,
+                title: 'Занятие не найдено',
+                message: 'Возможно, план был перестроен или удалён.',
+              );
+            }
+            return _SessionBody(session: session);
+          },
+        ),
       ),
     );
   }

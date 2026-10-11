@@ -62,62 +62,68 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         : _name.text.trim()[0].toUpperCase();
     return Scaffold(
       appBar: AppBar(title: const Text('Редактировать профиль')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Center(
-              child: UserAvatar(initials: initials, color: _color, radius: 40),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 12,
-              children: [
-                for (final c in avatarPalette)
-                  GestureDetector(
-                    onTap: () => setState(() => _color = c),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Color(c),
-                      child: c == _color
-                          ? const Icon(Icons.check, color: Colors.white)
-                          : null,
+      body: ContentFrame(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Center(
+                child: UserAvatar(
+                  initials: initials,
+                  color: _color,
+                  radius: 40,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                children: [
+                  for (final c in avatarPalette)
+                    GestureDetector(
+                      onTap: () => setState(() => _color = c),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Color(c),
+                        child: c == _color
+                            ? const Icon(Icons.check, color: Colors.white)
+                            : null,
+                      ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            TextFormField(
-              key: const Key('edit_name'),
-              controller: _name,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                labelText: 'Имя',
-                prefixIcon: Icon(Icons.person_outline),
+                ],
               ),
-              validator: Validators.name,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: const Key('edit_email'),
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                prefixIcon: const Icon(Icons.alternate_email),
-                errorText: _emailError,
+              const SizedBox(height: 24),
+              TextFormField(
+                key: const Key('edit_name'),
+                controller: _name,
+                onChanged: (_) => setState(() {}),
+                decoration: const InputDecoration(
+                  labelText: 'Имя',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+                validator: Validators.name,
               ),
-              validator: Validators.email,
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              key: const Key('edit_save'),
-              onPressed: _saving ? null : _save,
-              child: const Text('Сохранить'),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextFormField(
+                key: const Key('edit_email'),
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: const Icon(Icons.alternate_email),
+                  errorText: _emailError,
+                ),
+                validator: Validators.email,
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                key: const Key('edit_save'),
+                onPressed: _saving ? null : _save,
+                child: const Text('Сохранить'),
+              ),
+            ],
+          ),
         ),
       ),
     );

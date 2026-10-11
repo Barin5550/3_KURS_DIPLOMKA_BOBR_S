@@ -145,6 +145,15 @@ abstract final class AppTheme {
           ),
         ),
       ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: isDark ? AppColors.navyDeep : Colors.white,
+        indicatorColor: AppColors.orange.withValues(alpha: isDark ? .35 : .18),
+        selectedLabelTextStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelTextStyle: const TextStyle(fontSize: 12),
+      ),
       chipTheme: ChipThemeData(
         selectedColor: AppColors.orange.withValues(alpha: isDark ? .35 : .18),
         checkmarkColor: isDark ? AppColors.orangeLight : AppColors.orange,

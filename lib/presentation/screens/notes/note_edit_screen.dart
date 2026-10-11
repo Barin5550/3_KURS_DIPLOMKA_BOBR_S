@@ -123,49 +123,51 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen> {
             ),
         ],
       ),
-      body: !_loaded
-          ? const LoadingView()
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (_topicTitle != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Chip(
-                        avatar: const Icon(Icons.push_pin, size: 18),
-                        label: Text(_topicTitle!),
+      body: ContentFrame(
+        child: !_loaded
+            ? const LoadingView()
+            : Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (_topicTitle != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Chip(
+                          avatar: const Icon(Icons.push_pin, size: 18),
+                          label: Text(_topicTitle!),
+                        ),
                       ),
+                    TextFormField(
+                      key: const Key('note_title'),
+                      controller: _title,
+                      decoration: const InputDecoration(labelText: 'Заголовок'),
+                      validator: Validators.title,
                     ),
-                  TextFormField(
-                    key: const Key('note_title'),
-                    controller: _title,
-                    decoration: const InputDecoration(labelText: 'Заголовок'),
-                    validator: Validators.title,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    key: const Key('note_body'),
-                    controller: _body,
-                    minLines: 6,
-                    maxLines: 16,
-                    decoration: const InputDecoration(
-                      labelText: 'Текст',
-                      alignLabelWithHint: true,
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      key: const Key('note_body'),
+                      controller: _body,
+                      minLines: 6,
+                      maxLines: 16,
+                      decoration: const InputDecoration(
+                        labelText: 'Текст',
+                        alignLabelWithHint: true,
+                      ),
+                      validator: (v) =>
+                          Validators.requiredText(v, field: 'текст заметки'),
                     ),
-                    validator: (v) =>
-                        Validators.requiredText(v, field: 'текст заметки'),
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    key: const Key('note_save'),
-                    onPressed: _saving ? null : _save,
-                    child: const Text('Сохранить'),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      key: const Key('note_save'),
+                      onPressed: _saving ? null : _save,
+                      child: const Text('Сохранить'),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

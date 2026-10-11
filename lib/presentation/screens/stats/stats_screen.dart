@@ -22,82 +22,85 @@ class StatsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Статистика')),
-      body: completedAsync.when(
-        loading: () => const LoadingView(),
-        error: (e, _) => ErrorView(error: e),
-        data: (completed) {
-          if (completed.isEmpty && pomodoros.isEmpty) {
-            return const EmptyState(
-              key: Key('stats_empty'),
-              icon: Icons.insights,
-              title: 'Статистика появится после первых занятий',
-              message: 'Отмечайте выполненные занятия на главной или в плане.',
-            );
-          }
-          final minutes = completed.fold<int>(0, (s, e) => s + e.minutes);
-          final focus = pomodoros.fold<int>(0, (s, e) => s + e.minutes);
-          final history = _history(completed, pomodoros);
+      body: ContentFrame(
+        child: completedAsync.when(
+          loading: () => const LoadingView(),
+          error: (e, _) => ErrorView(error: e),
+          data: (completed) {
+            if (completed.isEmpty && pomodoros.isEmpty) {
+              return const EmptyState(
+                key: Key('stats_empty'),
+                icon: Icons.insights,
+                title: 'Статистика появится после первых занятий',
+                message:
+                    'Отмечайте выполненные занятия на главной или в плане.',
+              );
+            }
+            final minutes = completed.fold<int>(0, (s, e) => s + e.minutes);
+            final focus = pomodoros.fold<int>(0, (s, e) => s + e.minutes);
+            final history = _history(completed, pomodoros);
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Row(
-                children: [
-                  _Tile(
-                    icon: Icons.schedule,
-                    value: Fmt.hours(minutes / 60),
-                    label: 'часов изучено',
-                  ),
-                  const SizedBox(width: 8),
-                  _Tile(
-                    icon: Icons.task_alt,
-                    value: '${completed.length}',
-                    label: 'занятий',
-                  ),
-                  const SizedBox(width: 8),
-                  _Tile(
-                    icon: Icons.timer,
-                    value: '${pomodoros.length}',
-                    label: 'помидоров · ${Fmt.minutes(focus)}',
-                  ),
-                ],
-              ),
-              const SectionTitle('Часы по неделям'),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
-                  child: SizedBox(
-                    height: 180,
-                    child: _WeeklyChart(sessions: completed, today: today),
-                  ),
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Row(
+                  children: [
+                    _Tile(
+                      icon: Icons.schedule,
+                      value: Fmt.hours(minutes / 60),
+                      label: 'часов изучено',
+                    ),
+                    const SizedBox(width: 8),
+                    _Tile(
+                      icon: Icons.task_alt,
+                      value: '${completed.length}',
+                      label: 'занятий',
+                    ),
+                    const SizedBox(width: 8),
+                    _Tile(
+                      icon: Icons.timer,
+                      value: '${pomodoros.length}',
+                      label: 'помидоров · ${Fmt.minutes(focus)}',
+                    ),
+                  ],
                 ),
-              ),
-              if (completed.isNotEmpty) ...[
-                const SectionTitle('По категориям'),
+                const SectionTitle('Часы по неделям'),
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: _CategoryChart(sessions: completed),
+                    padding: const EdgeInsets.fromLTRB(8, 20, 16, 8),
+                    child: SizedBox(
+                      height: 180,
+                      child: _WeeklyChart(sessions: completed, today: today),
+                    ),
                   ),
                 ),
+                if (completed.isNotEmpty) ...[
+                  const SectionTitle('По категориям'),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: _CategoryChart(sessions: completed),
+                    ),
+                  ),
+                ],
+                const SectionTitle('История'),
+                for (final h in history.take(30))
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: Icon(switch (h.kind) {
+                        HistoryKind.session => Icons.check_circle,
+                        HistoryKind.review => Icons.replay_circle_filled,
+                        HistoryKind.pomodoro => Icons.timer,
+                      }, color: AppColors.orange),
+                      title: Text(h.title),
+                      subtitle: Text('${h.subtitle} · ${Fmt.dateTime(h.at)}'),
+                    ),
+                  ),
               ],
-              const SectionTitle('История'),
-              for (final h in history.take(30))
-                Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: Icon(switch (h.kind) {
-                      HistoryKind.session => Icons.check_circle,
-                      HistoryKind.review => Icons.replay_circle_filled,
-                      HistoryKind.pomodoro => Icons.timer,
-                    }, color: AppColors.orange),
-                    title: Text(h.title),
-                    subtitle: Text('${h.subtitle} · ${Fmt.dateTime(h.at)}'),
-                  ),
-                ),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

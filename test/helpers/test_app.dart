@@ -18,6 +18,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Фиксированная «сегодняшняя» дата для тестов: понедельник, 12.10.2026.
 final testToday = DateTime(2026, 10, 12, 10);
 
+/// Логические размеры экранов для проверки адаптивности.
+const phoneSize = Size(392.7, 850.9);
+const phoneLandscapeSize = Size(850.9, 392.7);
+const desktopSize = Size(1280, 800);
+
 /// Каталог читается из файлов проекта, а не из rootBundle.
 CatalogRepositoryImpl fileCatalog() =>
     CatalogRepositoryImpl((path) => File(path).readAsString());
@@ -59,9 +64,10 @@ Future<void> pumpTestApp(
   AppDatabase? db,
   Map<String, Object> prefs = const {},
   ReminderService? reminders,
+  Size size = phoneSize,
 }) async {
-  tester.view.physicalSize = const Size(1080, 2340);
   tester.view.devicePixelRatio = 2.75;
+  tester.view.physicalSize = size * 2.75;
   addTearDown(tester.view.reset);
   final base = await tester.runAsync(
     () => testOverrides(db: db, prefs: prefs, reminders: reminders),

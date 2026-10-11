@@ -24,25 +24,27 @@ class PlansScreen extends ConsumerWidget {
         label: const Text('Новый план'),
         onPressed: () => context.push('/onboarding'),
       ),
-      body: plansAsync.when(
-        loading: () => const LoadingView(),
-        error: (e, _) => ErrorView(error: e),
-        data: (plans) => plans.isEmpty
-            ? const EmptyState(
-                icon: Icons.folder_open,
-                title: 'Планов пока нет',
-                message: 'Нажмите «Новый план», чтобы создать первый.',
-              )
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                children: [
-                  for (final p in plans)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _PlanCard(plan: p),
-                    ),
-                ],
-              ),
+      body: ContentFrame(
+        child: plansAsync.when(
+          loading: () => const LoadingView(),
+          error: (e, _) => ErrorView(error: e),
+          data: (plans) => plans.isEmpty
+              ? const EmptyState(
+                  icon: Icons.folder_open,
+                  title: 'Планов пока нет',
+                  message: 'Нажмите «Новый план», чтобы создать первый.',
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                  children: [
+                    for (final p in plans)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _PlanCard(plan: p),
+                      ),
+                  ],
+                ),
+        ),
       ),
     );
   }

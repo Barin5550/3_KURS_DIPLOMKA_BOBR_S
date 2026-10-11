@@ -85,7 +85,7 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
             onPressed: () =>
                 context.push('/topics/custom/new?direction=${direction.id}'),
           ),
-          body: _list(direction),
+          body: ContentFrame(child: _list(direction)),
         );
       },
     );

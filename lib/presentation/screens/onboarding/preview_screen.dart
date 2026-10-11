@@ -60,39 +60,43 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     final direction = draft.direction;
     if (direction == null) {
       return const Scaffold(
-        body: Center(child: Text('Направление не выбрано')),
+        body: ContentFrame(
+          child: Center(child: Text('Направление не выбрано')),
+        ),
       );
     }
     final topicsAsync = ref.watch(directionTopicsProvider(direction.id));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Ваш план готов')),
-      body: topicsAsync.when(
-        loading: () => const LoadingView(),
-        error: (e, _) => ErrorView(error: e),
-        data: (topics) {
-          final PlanResult result;
-          try {
-            result = ref
-                .read(planServiceProvider)
-                .preview(
-                  topics: topics,
-                  settings: draft.settings,
-                  knownTopicIds: draft.knownTopicIds,
-                );
-          } on CycleDetectedException catch (e) {
-            return ErrorView(error: e);
-          }
-          return _PreviewBody(
-            title: direction.title,
-            result: result,
-            saving: _saving,
-            onSave: () => _save(result),
-            onApplyHours: (hours) => ref
-                .read(onboardingProvider.notifier)
-                .updateSettings(draft.settings.copyWith(hoursPerWeek: hours)),
-          );
-        },
+      body: ContentFrame(
+        child: topicsAsync.when(
+          loading: () => const LoadingView(),
+          error: (e, _) => ErrorView(error: e),
+          data: (topics) {
+            final PlanResult result;
+            try {
+              result = ref
+                  .read(planServiceProvider)
+                  .preview(
+                    topics: topics,
+                    settings: draft.settings,
+                    knownTopicIds: draft.knownTopicIds,
+                  );
+            } on CycleDetectedException catch (e) {
+              return ErrorView(error: e);
+            }
+            return _PreviewBody(
+              title: direction.title,
+              result: result,
+              saving: _saving,
+              onSave: () => _save(result),
+              onApplyHours: (hours) => ref
+                  .read(onboardingProvider.notifier)
+                  .updateSettings(draft.settings.copyWith(hoursPerWeek: hours)),
+            );
+          },
+        ),
       ),
     );
   }

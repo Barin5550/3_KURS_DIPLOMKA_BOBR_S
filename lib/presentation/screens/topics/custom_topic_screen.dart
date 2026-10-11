@@ -122,101 +122,103 @@ class _CustomTopicScreenState extends ConsumerState<CustomTopicScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(_isEdit ? 'Изменить тему' : 'Новая тема')),
-      body: !_loaded
-          ? const LoadingView()
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (direction != null)
-                    Text(
-                      'Направление: ${direction.title}',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    key: const Key('topic_title'),
-                    controller: _title,
-                    decoration: const InputDecoration(labelText: 'Название'),
-                    validator: Validators.title,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _description,
-                    minLines: 2,
-                    maxLines: 5,
-                    decoration: const InputDecoration(labelText: 'Описание'),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          key: const Key('topic_hours'),
-                          controller: _hours,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: const InputDecoration(
-                            labelText: 'Часы',
-                            suffixText: 'ч',
-                          ),
-                          validator: Validators.hours,
-                        ),
+      body: ContentFrame(
+        child: !_loaded
+            ? const LoadingView()
+            : Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (direction != null)
+                      Text(
+                        'Направление: ${direction.title}',
+                        style: Theme.of(context).textTheme.labelLarge,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _category,
-                          decoration: const InputDecoration(
-                            labelText: 'Категория',
-                          ),
-                          validator: (v) =>
-                              Validators.requiredText(v, field: 'категорию'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (direction != null) ...[
-                    const SizedBox(height: 20),
-                    Text(
-                      'Изучать после тем',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      key: const Key('topic_title'),
+                      controller: _title,
+                      decoration: const InputDecoration(labelText: 'Название'),
+                      validator: Validators.title,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Генератор плана поставит тему после выбранных',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _description,
+                      minLines: 2,
+                      maxLines: 5,
+                      decoration: const InputDecoration(labelText: 'Описание'),
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        for (final Topic t in direction.topics)
-                          FilterChip(
-                            label: Text(t.title),
-                            selected: _prerequisites.contains(t.id),
-                            onSelected: (on) => setState(
-                              () => on
-                                  ? _prerequisites.add(t.id)
-                                  : _prerequisites.remove(t.id),
+                        Expanded(
+                          child: TextFormField(
+                            key: const Key('topic_hours'),
+                            controller: _hours,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
                             ),
+                            decoration: const InputDecoration(
+                              labelText: 'Часы',
+                              suffixText: 'ч',
+                            ),
+                            validator: Validators.hours,
                           ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: _category,
+                            decoration: const InputDecoration(
+                              labelText: 'Категория',
+                            ),
+                            validator: (v) =>
+                                Validators.requiredText(v, field: 'категорию'),
+                          ),
+                        ),
                       ],
                     ),
+                    if (direction != null) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        'Изучать после тем',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Генератор плана поставит тему после выбранных',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (final Topic t in direction.topics)
+                            FilterChip(
+                              label: Text(t.title),
+                              selected: _prerequisites.contains(t.id),
+                              onSelected: (on) => setState(
+                                () => on
+                                    ? _prerequisites.add(t.id)
+                                    : _prerequisites.remove(t.id),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      key: const Key('topic_save'),
+                      onPressed: _saving ? null : _save,
+                      child: const Text('Сохранить'),
+                    ),
                   ],
-                  const SizedBox(height: 24),
-                  FilledButton(
-                    key: const Key('topic_save'),
-                    onPressed: _saving ? null : _save,
-                    child: const Text('Сохранить'),
-                  ),
-                ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

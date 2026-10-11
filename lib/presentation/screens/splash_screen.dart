@@ -60,43 +60,45 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
     return Scaffold(
       backgroundColor: AppColors.navyDark,
-      body: Center(
-        child: FadeTransition(
-          opacity: fade,
-          child: ScaleTransition(
-            scale: Tween(begin: .85, end: 1.0).animate(fade),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const AppLogo(size: 112),
-                const SizedBox(height: 24),
-                const Text(
-                  'Маршрут',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 34,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: .5,
+      body: ContentFrame(
+        child: Center(
+          child: FadeTransition(
+            opacity: fade,
+            child: ScaleTransition(
+              scale: Tween(begin: .85, end: 1.0).animate(fade),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const AppLogo(size: 112),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Маршрут',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Персональный план обучения',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: .75),
-                    fontSize: 16,
+                  const SizedBox(height: 8),
+                  Text(
+                    'Персональный план обучения',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: .75),
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                const SizedBox(
-                  width: 28,
-                  height: 28,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: AppColors.orange,
+                  const SizedBox(height: 48),
+                  const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: AppColors.orange,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

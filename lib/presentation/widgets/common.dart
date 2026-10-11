@@ -4,6 +4,44 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 
+/// Ширина, начиная с которой вместо нижней панели показывается боковая
+/// (Material 3: окно «expanded» — планшет, телефон в горизонтальной
+/// ориентации, окно Windows).
+const kWideLayoutBreakpoint = 840.0;
+
+/// Максимальная ширина содержимого экрана.
+const kContentMaxWidth = 720.0;
+
+/// Ограничивает ширину содержимого на широких экранах: на телефоне экран
+/// остаётся как есть, а в окне Windows или на планшете строки не растягиваются
+/// на всю ширину, а выстраиваются колонкой по центру.
+class ContentFrame extends StatelessWidget {
+  const ContentFrame({
+    super.key,
+    required this.child,
+    this.maxWidth = kContentMaxWidth,
+  });
+
+  final Widget child;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      if (!constraints.hasBoundedWidth || constraints.maxWidth <= maxWidth) {
+        return child;
+      }
+      return Center(
+        child: SizedBox(
+          width: maxWidth,
+          height: constraints.hasBoundedHeight ? constraints.maxHeight : null,
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 /// Логотип приложения: оранжевая «М» на тёмно-синем фоне с линией маршрута.
 class AppLogo extends StatelessWidget {
   const AppLogo({super.key, this.size = 96});

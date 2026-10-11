@@ -73,18 +73,21 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           ),
         ],
       ),
-      body: planAsync.when(
-        loading: () => const LoadingView(),
-        error: (e, _) => ErrorView(error: e),
-        data: (plan) => plan == null
-            ? EmptyState(
-                icon: Icons.calendar_month,
-                title: 'Плана пока нет',
-                message: 'Создайте план, и здесь появится расписание по дням.',
-                actionLabel: 'Создать план',
-                onAction: () => context.push('/onboarding'),
-              )
-            : _sessions(plan),
+      body: ContentFrame(
+        child: planAsync.when(
+          loading: () => const LoadingView(),
+          error: (e, _) => ErrorView(error: e),
+          data: (plan) => plan == null
+              ? EmptyState(
+                  icon: Icons.calendar_month,
+                  title: 'Плана пока нет',
+                  message:
+                      'Создайте план, и здесь появится расписание по дням.',
+                  actionLabel: 'Создать план',
+                  onAction: () => context.push('/onboarding'),
+                )
+              : _sessions(plan),
+        ),
       ),
     );
   }

@@ -55,49 +55,51 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Сменить пароль')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              key: const Key('old_password'),
-              controller: _old,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Текущий пароль',
-                errorText: _oldError,
+      body: ContentFrame(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              TextFormField(
+                key: const Key('old_password'),
+                controller: _old,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Текущий пароль',
+                  errorText: _oldError,
+                ),
+                validator: Validators.loginPassword,
               ),
-              validator: Validators.loginPassword,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: const Key('new_password'),
-              controller: _new,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Новый пароль',
-                helperText: 'Не менее 8 символов, буквы и цифры',
+              const SizedBox(height: 12),
+              TextFormField(
+                key: const Key('new_password'),
+                controller: _new,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Новый пароль',
+                  helperText: 'Не менее 8 символов, буквы и цифры',
+                ),
+                validator: Validators.password,
               ),
-              validator: Validators.password,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              key: const Key('confirm_password'),
-              controller: _confirm,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Повторите новый пароль',
+              const SizedBox(height: 12),
+              TextFormField(
+                key: const Key('confirm_password'),
+                controller: _confirm,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Повторите новый пароль',
+                ),
+                validator: Validators.confirmPassword(() => _new.text),
               ),
-              validator: Validators.confirmPassword(() => _new.text),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              key: const Key('password_save'),
-              onPressed: _saving ? null : _save,
-              child: const Text('Сменить пароль'),
-            ),
-          ],
+              const SizedBox(height: 24),
+              FilledButton(
+                key: const Key('password_save'),
+                onPressed: _saving ? null : _save,
+                child: const Text('Сменить пароль'),
+              ),
+            ],
+          ),
         ),
       ),
     );

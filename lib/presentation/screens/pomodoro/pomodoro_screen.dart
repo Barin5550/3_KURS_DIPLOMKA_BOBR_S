@@ -8,6 +8,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/planner/dates.dart';
 import '../../providers/providers.dart';
+import '../../widgets/common.dart';
 
 /// Режим таймера: длительность фокуса и перерыва в минутах.
 class PomodoroMode {
@@ -124,105 +125,109 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pomodoro')),
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          Center(
-            child: SegmentedButton<PomodoroMode>(
-              segments: [
-                for (final m in PomodoroScreen.modes)
-                  ButtonSegment(value: m, label: Text('${m.label} мин')),
-              ],
-              selected: {_mode},
-              onSelectionChanged: _running
-                  ? null
-                  : (s) => setState(() {
-                      _mode = s.first;
-                      _isFocus = true;
-                      _remaining = _total;
-                    }),
+      body: ContentFrame(
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            Center(
+              child: SegmentedButton<PomodoroMode>(
+                segments: [
+                  for (final m in PomodoroScreen.modes)
+                    ButtonSegment(value: m, label: Text('${m.label} мин')),
+                ],
+                selected: {_mode},
+                onSelectionChanged: _running
+                    ? null
+                    : (s) => setState(() {
+                        _mode = s.first;
+                        _isFocus = true;
+                        _remaining = _total;
+                      }),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            _isFocus ? 'Фокус' : 'Перерыв',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge?.copyWith(color: color),
-          ),
-          if (widget.topicTitle != null)
+            const SizedBox(height: 24),
             Text(
-              widget.topicTitle!,
+              _isFocus ? 'Фокус' : 'Перерыв',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
+              style: theme.textTheme.titleLarge?.copyWith(color: color),
             ),
-          const SizedBox(height: 24),
-          Center(
-            child: SizedBox(
-              width: 240,
-              height: 240,
-              child: CustomPaint(
-                painter: _TimerPainter(
-                  progress: progress.clamp(0, 1),
-                  color: color,
-                  track: theme.colorScheme.outlineVariant.withValues(alpha: .4),
-                ),
-                child: Center(
-                  child: Text(
-                    '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                    key: const Key('pomodoro_time'),
-                    style: theme.textTheme.displayMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+            if (widget.topicTitle != null)
+              Text(
+                widget.topicTitle!,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+            const SizedBox(height: 24),
+            Center(
+              child: SizedBox(
+                width: 240,
+                height: 240,
+                child: CustomPaint(
+                  painter: _TimerPainter(
+                    progress: progress.clamp(0, 1),
+                    color: color,
+                    track: theme.colorScheme.outlineVariant.withValues(
+                      alpha: .4,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+                      key: const Key('pomodoro_time'),
+                      style: theme.textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  key: const Key('pomodoro_start'),
-                  icon: Icon(_running ? Icons.pause : Icons.play_arrow),
-                  label: Text(_running ? 'Пауза' : 'Старт'),
-                  onPressed: _running ? _pause : _start,
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton.icon(
+                    key: const Key('pomodoro_start'),
+                    icon: Icon(_running ? Icons.pause : Icons.play_arrow),
+                    label: Text(_running ? 'Пауза' : 'Старт'),
+                    onPressed: _running ? _pause : _start,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.restart_alt),
-                  label: const Text('Сброс'),
-                  onPressed: _reset,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.restart_alt),
+                    label: const Text('Сброс'),
+                    onPressed: _reset,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: _complete,
-            child: Text(
-              _isFocus ? 'Завершить фокус досрочно' : 'Пропустить перерыв',
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            todayCount == 0
-                ? 'Сегодня помидоров пока нет'
-                : 'Сегодня: ${'🍅' * math.min(todayCount, 12)} '
-                      '(${Fmt.count(todayCount, 'помидор', 'помидора', 'помидоров')})',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Техника Pomodoro: работайте без отвлечений до сигнала таймера, '
-            'затем отдохните. После четырёх интервалов сделайте длинный перерыв.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall,
-          ),
-        ],
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _complete,
+              child: Text(
+                _isFocus ? 'Завершить фокус досрочно' : 'Пропустить перерыв',
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              todayCount == 0
+                  ? 'Сегодня помидоров пока нет'
+                  : 'Сегодня: ${'🍅' * math.min(todayCount, 12)} '
+                        '(${Fmt.count(todayCount, 'помидор', 'помидора', 'помидоров')})',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Техника Pomodoro: работайте без отвлечений до сигнала таймера, '
+              'затем отдохните. После четырёх интервалов сделайте длинный перерыв.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }

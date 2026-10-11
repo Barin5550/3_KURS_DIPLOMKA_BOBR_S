@@ -29,9 +29,11 @@ class TopicScreen extends ConsumerWidget {
         if (topic == null) {
           return Scaffold(
             appBar: AppBar(),
-            body: const EmptyState(
-              icon: Icons.help_outline,
-              title: 'Тема не найдена',
+            body: const ContentFrame(
+              child: EmptyState(
+                icon: Icons.help_outline,
+                title: 'Тема не найдена',
+              ),
             ),
           );
         }
@@ -58,20 +60,22 @@ class TopicScreen extends ConsumerWidget {
               ],
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                topic.title,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Wrap(spacing: 8, children: [Chip(label: Text(topic.category))]),
-              const SizedBox(height: 8),
-              TopicDetails(topic: topic),
-              const SizedBox(height: 16),
-              if (topic.isCustom) _AddToPlanButton(topic: topic),
-            ],
+          body: ContentFrame(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text(
+                  topic.title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, children: [Chip(label: Text(topic.category))]),
+                const SizedBox(height: 8),
+                TopicDetails(topic: topic),
+                const SizedBox(height: 16),
+                if (topic.isCustom) _AddToPlanButton(topic: topic),
+              ],
+            ),
           ),
         );
       },
