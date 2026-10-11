@@ -79,7 +79,7 @@ abstract final class Fmt {
   /// Склонение: plural(5, 'тема', 'темы', 'тем') → «тем».
   ///
   /// [one] — форма для 1, 21, 31…; [few] — для 2–4, 22–24…;
-  /// [many] — для 0, 5–20, 25–30… .
+  /// [many] — для 0, 5–20, 25–30 и т. д.
   static String plural(int n, String one, String few, String many) {
     // Последняя цифра и две последние цифры числа.
     final mod10 = n % 10;

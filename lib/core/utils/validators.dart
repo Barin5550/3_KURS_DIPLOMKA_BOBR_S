@@ -1,41 +1,68 @@
+// Файл validators.dart — проверка того, что пользователь ввёл в формы.
+// Слой: core (общие утилиты). Используется экранами presentation:
+// вход, регистрация, профиль, смена пароля, заметки, планы и свои темы.
+// Каждый метод передаётся в параметр validator у TextFormField.
 /// Валидаторы полей форм. Возвращают текст ошибки или `null`, если всё верно.
 ///
 /// Сигнатура `String? Function(String?)` совпадает с параметром
 /// `validator` у `TextFormField`.
 abstract final class Validators {
+  /// Регулярное выражение (шаблон для проверки строки) для email:
+  /// имя, затем «@», затем домен с точкой и зоной из 2+ латинских букв.
   static final _emailRegExp = RegExp(
     r'^[\w.+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$',
   );
+
+  /// Шаблон для имени: латинские и русские буквы, пробел, апостроф, дефис.
   static final _nameRegExp = RegExp(r"^[a-zA-Zа-яА-ЯёЁ\s'-]+$");
 
+  /// Проверка имени: не пустое, от 2 до 40 символов, только буквы,
+  /// пробелы, апостроф и дефис.
   static String? name(String? value) {
+    // Убираем пробелы по краям; если значения нет — берём пустую строку.
     final v = value?.trim() ?? '';
+    // Пустое поле.
     if (v.isEmpty) return 'Введите имя';
+    // Ограничения по длине.
     if (v.length < 2) return 'Имя должно содержать не менее 2 символов';
     if (v.length > 40) return 'Имя должно содержать не более 40 символов';
+    // Недопустимые символы (цифры, знаки и т. п.).
     if (!_nameRegExp.hasMatch(v)) {
       return 'Имя может содержать только буквы, пробел и дефис';
     }
+    // Ошибок нет.
     return null;
   }
 
+  /// Проверка email: не пустой и соответствует шаблону [_emailRegExp].
   static String? email(String? value) {
+    // Убираем пробелы по краям.
     final v = value?.trim() ?? '';
+    // Пустое поле.
     if (v.isEmpty) return 'Введите email';
+    // Адрес не похож на email — подсказываем пример.
     if (!_emailRegExp.hasMatch(v)) {
       return 'Введите корректный email, например name@mail.ru';
     }
+    // Ошибок нет.
     return null;
   }
 
+  /// Проверка нового пароля при регистрации и смене пароля:
+  /// не короче 8 символов, есть хотя бы одна буква и одна цифра.
   static String? password(String? value) {
+    // Пароль не обрезаем: пробелы по краям тоже часть пароля.
     final v = value ?? '';
+    // Пустое поле.
     if (v.isEmpty) return 'Введите пароль';
+    // Слишком короткий пароль.
     if (v.length < 8) return 'Пароль должен содержать не менее 8 символов';
+    // Нет ни одной буквы (латиница или кириллица) или ни одной цифры.
     if (!RegExp(r'[A-Za-zА-Яа-яЁё]').hasMatch(v) ||
         !RegExp(r'\d').hasMatch(v)) {
       return 'Пароль должен содержать буквы и цифры';
     }
+    // Ошибок нет.
     return null;
   }
 
@@ -44,34 +71,56 @@ abstract final class Validators {
   static String? loginPassword(String? value) =>
       (value == null || value.isEmpty) ? 'Введите пароль' : null;
 
+  /// Создаёт валидатор поля «Повторите пароль».
+  ///
+  /// [original] — функция, которая возвращает текущий текст поля пароля;
+  /// функция, а не строка, нужна потому, что пароль может измениться
+  /// уже после создания валидатора.
   static String? Function(String?) confirmPassword(
     String Function() original,
   ) => (value) {
+    // Поле повтора пустое.
     if (value == null || value.isEmpty) return 'Повторите пароль';
+    // Повтор не совпадает с паролем.
     if (value != original()) return 'Пароли не совпадают';
+    // Ошибок нет.
     return null;
   };
 
+  /// Общая проверка «поле не пустое»; [field] — название поля для текста
+  /// ошибки («Заполните текст заметки», «Заполните категорию» и т. п.).
   static String? requiredText(String? value, {String field = 'поле'}) =>
       (value == null || value.trim().isEmpty) ? 'Заполните $field' : null;
 
+  /// Проверка названия (плана, темы, заметки): не пустое, до 80 символов.
   static String? title(String? value) {
+    // Убираем пробелы по краям.
     final v = value?.trim() ?? '';
+    // Пустое поле.
     if (v.isEmpty) return 'Введите название';
+    // Слишком длинное название.
     if (v.length > 80) return 'Название должно быть не длиннее 80 символов';
+    // Ошибок нет.
     return null;
   }
 
   /// Длительность темы в часах: число от 0,5 до 100 (допускается запятая).
   static String? hours(String? value) {
+    // Заменяем запятую на точку, чтобы Dart понял дробное число.
     final v = value?.trim().replaceAll(',', '.') ?? '';
+    // Пустое поле.
     if (v.isEmpty) return 'Укажите количество часов';
+    // Пробуем превратить текст в число; null — если это не число.
     final parsed = double.tryParse(v);
     if (parsed == null) return 'Введите число, например 2 или 1,5';
+    // Число вне допустимого диапазона.
     if (parsed < 0.5 || parsed > 100) return 'От 0,5 до 100 часов';
+    // Ошибок нет.
     return null;
   }
 
+  /// Превращает уже проверенный методом [hours] текст в число
+  /// (запятая заменяется точкой).
   static double parseHours(String value) =>
       double.parse(value.trim().replaceAll(',', '.'));
 }
