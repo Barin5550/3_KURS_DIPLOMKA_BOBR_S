@@ -8,8 +8,10 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:marshrut/app.dart';
+import 'package:marshrut/core/utils/password_hasher.dart';
 import 'package:marshrut/data/datasources/catalog_repository_impl.dart';
 import 'package:marshrut/data/db/app_database.dart';
+import 'package:marshrut/data/repositories/auth_repository_impl.dart';
 import 'package:marshrut/data/services/reminder_service_impl.dart';
 import 'package:marshrut/domain/repositories/repositories.dart';
 import 'package:marshrut/presentation/providers/providers.dart';
@@ -26,6 +28,14 @@ const desktopSize = Size(1280, 800);
 /// Каталог читается из файлов проекта, а не из rootBundle.
 CatalogRepositoryImpl fileCatalog() =>
     CatalogRepositoryImpl((path) => File(path).readAsString());
+
+/// Хэширование паролей с малым числом итераций: алгоритм тот же,
+/// но тесты не тратят время на 100 000 повторений HMAC.
+PasswordHasher fastHasher() => PasswordHasher(iterations: 1000);
+
+/// Репозиторий пользователей для подготовки данных в тестах.
+AuthRepositoryImpl testAuthRepository(AppDatabase db) =>
+    AuthRepositoryImpl(db, hasher: fastHasher());
 
 /// База данных SQLite в оперативной памяти.
 AppDatabase memoryDatabase() {
@@ -55,6 +65,7 @@ Future<List<Override>> testOverrides({
     ),
     catalogRepositoryProvider.overrideWithValue(catalog),
     clockProvider.overrideWithValue(clock ?? () => testToday),
+    passwordHasherProvider.overrideWithValue(fastHasher()),
   ];
 }
 

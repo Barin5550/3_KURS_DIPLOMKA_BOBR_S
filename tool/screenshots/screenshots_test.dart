@@ -18,7 +18,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marshrut/app.dart';
 import 'package:marshrut/data/db/app_database.dart';
-import 'package:marshrut/data/repositories/auth_repository_impl.dart';
 import 'package:marshrut/data/repositories/note_repository_impl.dart';
 import 'package:marshrut/data/repositories/plan_repository_impl.dart';
 import 'package:marshrut/data/repositories/topic_repository_impl.dart';
@@ -71,7 +70,7 @@ Future<void> _loadFonts() async {
 /// Пользователь с планом, начатым 4 недели назад: часть занятий выполнена,
 /// два пропущены, есть заметки, избранное, своя тема и «помидоры».
 Future<int> _seed(AppDatabase db) async {
-  final user = await AuthRepositoryImpl(db)
+  final user = await testAuthRepository(db)
       .register(name: 'Алия', email: 'aliya@mail.ru', password: 'flutter2026');
   final directions = await fileCatalog().loadDirections();
   final flutter = directions.first;

@@ -84,6 +84,16 @@ class AuthController extends Notifier<AuthState> {
     state = const AuthState.unauthenticated();
   }
 
+  /// Удаляет аккаунт со всеми данными и выходит из системы.
+  Future<void> deleteAccount(String password) async {
+    final user = state.user;
+    if (user == null) return;
+    await ref
+        .read(authRepositoryProvider)
+        .deleteAccount(userId: user.id, password: password);
+    await logout();
+  }
+
   Future<void> updateProfile({
     required String name,
     required String email,

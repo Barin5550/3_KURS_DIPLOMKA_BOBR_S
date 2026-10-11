@@ -43,7 +43,7 @@ class AuthRepositoryImpl implements AuthRepository {
           UsersCompanion.insert(
             name: name.trim(),
             email: normalized,
-            passwordHash: _hasher.hash(password, salt),
+            passwordHash: await _hasher.hashAsync(password, salt),
             salt: salt,
             avatarColor: avatarPalette[count % avatarPalette.length],
             createdAt: DateTime.now(),
@@ -60,8 +60,14 @@ class AuthRepositoryImpl implements AuthRepository {
     final row = await _findByEmail(_normalize(email));
     // Одинаковое сообщение для неизвестного email и неверного пароля, чтобы
     // нельзя было подобрать существующие адреса.
-    if (row == null || !_hasher.verify(password, row.salt, row.passwordHash)) {
+    if (row == null ||
+        !await _hasher.verifyAsync(password, row.salt, row.passwordHash)) {
       throw const AppException(invalidCredentials);
+    }
+    // Хэш старого формата (SHA-256 версии 1 семестра) или с меньшим числом
+    // итераций пересчитывается: пароль известен только в момент входа.
+    if (_hasher.needsRehash(row.passwordHash)) {
+      await _savePassword(row.id, password);
     }
     return _toEntity(row);
   }
@@ -105,18 +111,38 @@ class AuthRepositoryImpl implements AuthRepository {
     final row = await (_db.select(
       _db.users,
     )..where((u) => u.id.equals(userId))).getSingle();
-    if (!_hasher.verify(oldPassword, row.salt, row.passwordHash)) {
+    if (!await _hasher.verifyAsync(oldPassword, row.salt, row.passwordHash)) {
       throw const AppException('Текущий пароль указан неверно');
     }
     if (oldPassword == newPassword) {
       throw const AppException('Новый пароль должен отличаться от текущего');
     }
+    await _savePassword(userId, newPassword);
+  }
+
+  @override
+  Future<void> deleteAccount({
+    required int userId,
+    required String password,
+  }) async {
+    final row = await (_db.select(
+      _db.users,
+    )..where((u) => u.id.equals(userId))).getSingleOrNull();
+    if (row == null) throw const AppException('Пользователь не найден');
+    if (!await _hasher.verifyAsync(password, row.salt, row.passwordHash)) {
+      throw const AppException('Пароль указан неверно');
+    }
+    // Планы, занятия, заметки, свои темы, избранное и «помидоры» удаляются
+    // каскадно (FOREIGN KEY … ON DELETE CASCADE).
+    await (_db.delete(_db.users)..where((u) => u.id.equals(userId))).go();
+  }
+
+  /// Сохраняет пароль с новой солью в текущем формате хэша.
+  Future<void> _savePassword(int userId, String password) async {
     final salt = _hasher.generateSalt();
+    final hash = await _hasher.hashAsync(password, salt);
     await (_db.update(_db.users)..where((u) => u.id.equals(userId))).write(
-      UsersCompanion(
-        salt: Value(salt),
-        passwordHash: Value(_hasher.hash(newPassword, salt)),
-      ),
+      UsersCompanion(salt: Value(salt), passwordHash: Value(hash)),
     );
   }
 

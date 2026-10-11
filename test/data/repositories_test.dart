@@ -1,6 +1,7 @@
-import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:drift/drift.dart' show Value, driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:marshrut/core/utils/password_hasher.dart';
 import 'package:marshrut/data/db/app_database.dart';
 import 'package:marshrut/data/repositories/auth_repository_impl.dart';
 import 'package:marshrut/data/repositories/note_repository_impl.dart';
@@ -14,6 +15,9 @@ import 'package:marshrut/domain/usecases/plan_service.dart';
 
 /// Тесты слоя data на настоящей SQLite в оперативной памяти.
 void main() {
+  // Малое число итераций PBKDF2, чтобы тесты шли быстро.
+  final hasher = PasswordHasher(iterations: 1000);
+
   late AppDatabase db;
 
   setUp(() {
@@ -24,7 +28,7 @@ void main() {
 
   group('AuthRepositoryImpl', () {
     late AuthRepositoryImpl auth;
-    setUp(() => auth = AuthRepositoryImpl(db));
+    setUp(() => auth = AuthRepositoryImpl(db, hasher: hasher));
 
     Future<int> register([String email = 'user@mail.ru']) async =>
         (await auth.register(
@@ -38,8 +42,34 @@ void main() {
       final row = await db.select(db.users).getSingle();
       expect(row.name, 'Алия');
       expect(row.passwordHash, isNot(contains('secret123')));
-      expect(row.passwordHash.length, 64, reason: 'SHA-256 в hex');
+      expect(
+        row.passwordHash,
+        matches(RegExp(r'^pbkdf2_sha256\$1000\$[0-9a-f]{64}$')),
+      );
       expect(row.salt, isNotEmpty);
+    });
+
+    test('пароль версии 1 семестра (SHA-256) принимается и '
+        'пересчитывается в PBKDF2 при входе', () async {
+      final id = await register();
+      // Запись в формате версии 1 семестра.
+      await (db.update(db.users)..where((u) => u.id.equals(id))).write(
+        UsersCompanion(
+          salt: const Value('old-salt'),
+          passwordHash: Value(
+            PasswordHasher.legacyHash('secret123', 'old-salt'),
+          ),
+        ),
+      );
+
+      await auth.login(email: 'user@mail.ru', password: 'secret123');
+
+      final row = await db.select(db.users).getSingle();
+      expect(row.passwordHash, startsWith(r'pbkdf2_sha256$1000$'));
+      expect(row.salt, isNot('old-salt'));
+      expect(hasher.verify('secret123', row.salt, row.passwordHash), isTrue);
+      // После пересчёта вход по-прежнему работает.
+      await auth.login(email: 'user@mail.ru', password: 'secret123');
     });
 
     test('email уникален без учёта регистра и пробелов', () async {
@@ -83,7 +113,7 @@ void main() {
 
     test('смена пароля проверяет текущий и запрещает повтор', () async {
       final id = await register();
-      expect(
+      await expectLater(
         () => auth.changePassword(
           userId: id,
           oldPassword: 'bad',
@@ -91,7 +121,7 @@ void main() {
         ),
         throwsA(isA<AppException>()),
       );
-      expect(
+      await expectLater(
         () => auth.changePassword(
           userId: id,
           oldPassword: 'secret123',
@@ -133,6 +163,60 @@ void main() {
       expect(updated.email, 'a2@mail.ru');
       expect(updated.avatarColor, 42);
     });
+
+    test('удаление аккаунта проверяет пароль и удаляет все данные '
+        'пользователя', () async {
+      final id = await register('a@mail.ru');
+      final other = await register('b@mail.ru');
+      final plans = PlanRepositoryImpl(db);
+      final service = PlanService(plans, clock: () => DateTime(2026, 10, 12));
+      final notes = NoteRepositoryImpl(db);
+      final topics = TopicRepositoryImpl(db);
+      for (final userId in [id, other]) {
+        await service.createPlan(
+          userId: userId,
+          directionId: 'flutter',
+          title: 'План',
+          topics: const [
+            Topic(id: 'dart', title: 'Dart', minutes: 60, category: 'Основы'),
+          ],
+          settings: ScheduleSettings(
+            hoursPerWeek: 5,
+            studyDays: const {1, 2, 3, 4, 5},
+            startDate: DateTime(2026, 10, 12),
+          ),
+          knownTopicIds: const {},
+        );
+        await notes.createNote(userId: userId, title: 'Заметка', body: '');
+        await PomodoroRepositoryImpl(db)
+            .logPomodoro(userId: userId, minutes: 25);
+        await topics.toggleFavorite(userId, 'dart');
+      }
+
+      await expectLater(
+        () => auth.deleteAccount(userId: id, password: 'wrong123'),
+        throwsA(isA<AppException>()),
+      );
+      expect(await db.select(db.users).get(), hasLength(2));
+
+      await auth.deleteAccount(userId: id, password: 'secret123');
+
+      final users = await db.select(db.users).get();
+      expect(users.map((u) => u.id), [other]);
+      // Данные удалённого пользователя исчезли каскадно, чужие остались.
+      expect(await db.select(db.plans).get(), hasLength(1));
+      expect(
+        (await db.select(db.planTopics).get()).map((t) => t.planId).toSet(),
+        hasLength(1),
+      );
+      expect(await db.select(db.notes).get(), hasLength(1));
+      expect(await db.select(db.favorites).get(), hasLength(1));
+      expect(await db.select(db.pomodoroLogs).get(), hasLength(1));
+      await expectLater(
+        () => auth.login(email: 'a@mail.ru', password: 'secret123'),
+        throwsA(isA<AppException>()),
+      );
+    });
   });
 
   group('PlanRepositoryImpl и PlanService', () {
@@ -167,6 +251,7 @@ void main() {
     setUp(() async {
       userId = (await AuthRepositoryImpl(
         db,
+        hasher: hasher,
       ).register(name: 'Тест', email: 't@t.ru', password: 'secret123')).id;
       plans = PlanRepositoryImpl(db);
       service = PlanService(plans, clock: () => today);
@@ -289,6 +374,7 @@ void main() {
     setUp(() async {
       userId = (await AuthRepositoryImpl(
         db,
+        hasher: hasher,
       ).register(name: 'Тест', email: 't@t.ru', password: 'secret123')).id;
       topics = TopicRepositoryImpl(db);
     });
@@ -357,6 +443,7 @@ void main() {
     test('CRUD заметок и фильтр по теме', () async {
       final userId = (await AuthRepositoryImpl(
         db,
+        hasher: hasher,
       ).register(name: 'Тест', email: 't@t.ru', password: 'secret123')).id;
       final notes = NoteRepositoryImpl(db);
 

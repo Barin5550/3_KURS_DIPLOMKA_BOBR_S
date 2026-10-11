@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marshrut/data/db/app_database.dart';
-import 'package:marshrut/data/repositories/auth_repository_impl.dart';
 
 import '../helpers/test_app.dart';
 
@@ -12,7 +11,7 @@ void main() {
   setUp(() => db = memoryDatabase());
 
   Future<int> seedUser() async {
-    final user = await AuthRepositoryImpl(db)
+    final user = await testAuthRepository(db)
         .register(name: 'Ира', email: 'ira@mail.ru', password: 'secret123');
     return user.id;
   }

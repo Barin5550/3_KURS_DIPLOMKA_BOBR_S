@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marshrut/data/db/app_database.dart';
-import 'package:marshrut/data/repositories/auth_repository_impl.dart';
 import 'package:marshrut/data/repositories/plan_repository_impl.dart';
 import 'package:marshrut/domain/entities/schedule_settings.dart';
 import 'package:marshrut/domain/usecases/plan_service.dart';
@@ -46,7 +45,7 @@ void main() {
 
   /// Пользователь с готовым планом по Flutter.
   Future<int> seed(AppDatabase db) async {
-    final user = await AuthRepositoryImpl(db)
+    final user = await testAuthRepository(db)
         .register(name: 'Ира', email: 'ira@mail.ru', password: 'secret123');
     final flutter = (await fileCatalog().loadDirections()).first;
     await PlanService(

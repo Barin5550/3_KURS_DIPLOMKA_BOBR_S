@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/utils/password_hasher.dart';
 import '../../data/datasources/catalog_repository_impl.dart';
 import '../../data/db/app_database.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -52,8 +53,17 @@ final catalogRepositoryProvider = Provider<CatalogRepository>(
   (ref) => CatalogRepositoryImpl(rootBundle.loadString),
 );
 
+/// Хэширование паролей (в тестах подменяется вариантом с малым числом
+/// итераций, чтобы тесты шли быстро).
+final passwordHasherProvider = Provider<PasswordHasher>(
+  (ref) => PasswordHasher(),
+);
+
 final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepositoryImpl(ref.watch(databaseProvider)),
+  (ref) => AuthRepositoryImpl(
+    ref.watch(databaseProvider),
+    hasher: ref.watch(passwordHasherProvider),
+  ),
 );
 
 final sessionStorageProvider = Provider<SessionStorage>(

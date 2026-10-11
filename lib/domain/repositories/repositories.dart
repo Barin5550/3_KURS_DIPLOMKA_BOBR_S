@@ -52,6 +52,9 @@ abstract interface class AuthRepository {
     required String newPassword,
   });
 
+  /// Удаляет аккаунт и все данные пользователя после проверки пароля.
+  Future<void> deleteAccount({required int userId, required String password});
+
   Future<AppUser> updateReminder({
     required int userId,
     required bool enabled,

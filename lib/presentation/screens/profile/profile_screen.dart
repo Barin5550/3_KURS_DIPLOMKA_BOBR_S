@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/formatters.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common.dart';
+import 'delete_account_dialog.dart';
 
 /// Вкладка «Профиль»: данные пользователя, настройки и выход.
 class ProfileScreen extends ConsumerWidget {
@@ -210,6 +211,25 @@ class ProfileScreen extends ConsumerWidget {
                 );
                 if (ok) {
                   await ref.read(authControllerProvider.notifier).logout();
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: const Key('delete_account_button'),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+              icon: const Icon(Icons.delete_forever_outlined),
+              label: const Text('Удалить аккаунт'),
+              onPressed: () async {
+                // Мессенджер общий для приложения: сообщение будет видно и
+                // после перехода на экран входа.
+                final messenger = ScaffoldMessenger.of(context);
+                if (await showDeleteAccountDialog(context)) {
+                  messenger.showSnackBar(
+                    const SnackBar(content: Text('Аккаунт и данные удалены')),
+                  );
                 }
               },
             ),

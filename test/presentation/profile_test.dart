@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marshrut/data/db/app_database.dart';
-import 'package:marshrut/data/repositories/auth_repository_impl.dart';
 import 'package:marshrut/data/services/reminder_service_impl.dart';
 
 import '../helpers/test_app.dart';
@@ -16,7 +15,7 @@ void main() {
     NoopReminderService reminders,
   ) async {
     final id = await tester.runAsync(
-      () async => (await AuthRepositoryImpl(
+      () async => (await testAuthRepository(
         db,
       ).register(name: 'Ира', email: 'ira@mail.ru', password: 'secret123')).id,
     );
@@ -63,6 +62,46 @@ void main() {
       find.byKey(const Key('reminder_switch')),
     );
     expect(tile.onChanged, isNull);
+    await finish(tester);
+  });
+
+  testWidgets('удаление аккаунта: неверный пароль, затем удаление и выход', (
+    tester,
+  ) async {
+    await openProfile(tester, NoopReminderService());
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('delete_account_button')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const Key('delete_account_button')));
+    await settle(tester);
+    expect(find.text('Удалить аккаунт?'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('delete_password_field')),
+      'wrong123',
+    );
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('delete_account_confirm')));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await settle(tester);
+    expect(find.text('Пароль указан неверно'), findsOneWidget);
+
+    await tester.enterText(
+      find.byKey(const Key('delete_password_field')),
+      'secret123',
+    );
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('delete_account_confirm')));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    });
+    await settle(tester);
+    expect(find.text('Войти'), findsOneWidget);
+    expect(find.text('Аккаунт и данные удалены'), findsOneWidget);
+    final users = await tester.runAsync(() => db.select(db.users).get());
+    expect(users, isEmpty);
     await finish(tester);
   });
 }
