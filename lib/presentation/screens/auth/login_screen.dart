@@ -53,6 +53,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     setState(() => _error = null);
     if (!_formKey.currentState!.validate()) return;
+    // Сообщение «Аккаунт создан» после входа не нужно: иначе оно
+    // закрывает кнопку внизу следующего экрана.
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     setState(() => _loading = true);
     try {
       await ref
