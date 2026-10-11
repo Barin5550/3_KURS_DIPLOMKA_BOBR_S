@@ -186,38 +186,60 @@ class _PlanCard extends ConsumerWidget {
     }
   }
 
-  Future<String?> _askTitle(BuildContext context, String initial) {
-    final controller = TextEditingController(text: initial);
-    final formKey = GlobalKey<FormState>();
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Название плана'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            key: const Key('rename_field'),
-            controller: controller,
-            autofocus: true,
-            validator: Validators.title,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            key: const Key('rename_save'),
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.of(context).pop(controller.text.trim());
-              }
-            },
-            child: const Text('Сохранить'),
-          ),
-        ],
-      ),
-    ).whenComplete(controller.dispose);
+  Future<String?> _askTitle(BuildContext context, String initial) =>
+      showDialog<String>(
+        context: context,
+        builder: (_) => _RenameDialog(initial: initial),
+      );
+}
+
+/// Диалог переименования плана. Контроллер поля живёт вместе с диалогом
+/// и освобождается в [State.dispose], уже после анимации закрытия.
+class _RenameDialog extends StatefulWidget {
+  const _RenameDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_RenameDialog> createState() => _RenameDialogState();
+}
+
+class _RenameDialogState extends State<_RenameDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Название плана'),
+    content: Form(
+      key: _formKey,
+      child: TextFormField(
+        key: const Key('rename_field'),
+        controller: _controller,
+        autofocus: true,
+        validator: Validators.title,
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Отмена'),
+      ),
+      TextButton(
+        key: const Key('rename_save'),
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            Navigator.of(context).pop(_controller.text.trim());
+          }
+        },
+        child: const Text('Сохранить'),
+      ),
+    ],
+  );
 }
