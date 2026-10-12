@@ -1,9 +1,11 @@
 """Сборка отчёта о выполнении критериев оценивания (DOCX и PDF).
 
-Отчёт собирается из таблиц docs/criteria_semester1.md и
-docs/criteria_semester2.md: для каждого критерия — где он реализован
-и как его показать на защите. Оформление то же, что у курсовой
-(tool/coursework/build_coursework.py), страницы альбомные, чтобы
+Текст отчёта — docs/Отчёт_по_критериям.md: для каждого критерия простыми
+словами сказано, что сделано и как показать это на защите (без путей к
+файлам и названий классов; технические таблицы с путями остаются в
+docs/criteria_semester1.md и docs/criteria_semester2.md). Сборщик
+добавляет шапку с данными студента и оформляет документ так же, как
+курсовую (tool/coursework/build_coursework.py); страницы альбомные, чтобы
 таблицы из четырёх столбцов читались без лишних переносов.
 
 Запуск:
@@ -28,20 +30,8 @@ import build_coursework as bc  # noqa: E402
 DOCS = os.path.join(bc.ROOT, "docs")
 OUT_DOCX = os.path.join(DOCS, "Отчёт_по_критериям.docx")
 OUT_PDF = os.path.join(DOCS, "Отчёт_по_критериям.pdf")
-SOURCES = [
-    ("1 семестр", "criteria_semester1.md"),
-    ("2 семестр", "criteria_semester2.md"),
-]
+SOURCE = os.path.join(DOCS, "Отчёт_по_критериям.md")
 PAGE_WIDTH, PAGE_HEIGHT, MARGIN = 29.7, 21.0, 2.0
-
-
-def criteria_table(name):
-    """Таблица критериев из файла: без заголовка, пояснений и списка
-    «Что проверить перед сдачей» (это заметки для самого студента)."""
-    with open(os.path.join(DOCS, name), encoding="utf-8") as f:
-        text = f.read()
-    rows = [line for line in text.split("\n") if line.startswith("|")]
-    return "\n".join(rows)
 
 
 def assemble():
@@ -59,21 +49,9 @@ def assemble():
         "",
         f"Руководитель: {bc.SUPERVISOR}",
         "",
-        "Для каждого критерия указано, где он реализован в приложении или в "
-        "курсовой работе и как показать его на защите. Пути к файлам указаны "
-        "от корня репозитория, скриншоты экранов приведены в курсовой работе "
-        "(раздел 2.5).",
     ]
-    for number, (title, name) in enumerate(SOURCES, start=1):
-        parts += [
-            "",
-            f"## Критерии: {title}",
-            "",
-            f"Таблица {number} — Критерии {title.replace('семестр', 'семестра')}: "
-            "где реализовано и как показать",
-            "",
-            criteria_table(name),
-        ]
+    with open(SOURCE, encoding="utf-8") as f:
+        parts.append(f.read())
     path = os.path.join(bc.BUILD, "criteria_report.md")
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(parts) + "\n")
