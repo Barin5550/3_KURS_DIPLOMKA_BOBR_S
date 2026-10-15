@@ -7,12 +7,15 @@
 # 4. ios      — сборка для iPhone без подписи (артефакт marshrut-ios, файл
 #               marshrut-ios.ipa). Подпись делает Sideloadly при установке
 #               на телефон бесплатным Apple ID (docs/Установка_на_iPhone.md).
+# 5. server   — сервер API для Windows (артефакт marshrut-server-windows):
+#               программа marshrut_server.exe, библиотека SQLite, каталог тем
+#               и файл «Запустить сервер.bat» (docs/Сервер_API.md).
 #
 # Готовые файлы скачиваются на странице запуска: вкладка Actions → запуск →
 # раздел Artifacts. Когда на странице Releases публикуется новый релиз
-# (например, с тегом v1.0.0), та же сборка прикладывает APK, архив для
-# Windows и IPA для iPhone к этому релизу, и их можно скачать без входа
-# в GitHub.
+# (например, с тегом v1.1.0), та же сборка прикладывает APK, архив для
+# Windows, IPA для iPhone и архив сервера к этому релизу, и их можно
+# скачать без входа в GitHub.
 name: Сборка и тесты
 
 on:
@@ -42,7 +45,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Форматирование
-        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
+        run: dart format --output=none --set-exit-if-changed lib bin test integration_test tool
       - name: Статический анализ
         run: flutter analyze
       - name: Модульные и виджет-тесты
@@ -128,10 +131,36 @@ jobs:
           path: marshrut-ios.ipa
           if-no-files-found: error
 
+  server:
+    name: Сервер API для Windows
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Сборка программы-сервера
+        run: dart build cli -t bin/marshrut_server.dart -o build/server
+      - name: Каталог тем, файл запуска и архив
+        shell: pwsh
+        run: |
+          Copy-Item -Recurse assets/catalog build/server/bundle/catalog
+          Copy-Item 'tool/server/Запустить сервер.bat' build/server/bundle/
+          Compress-Archive -Path build/server/bundle/* -DestinationPath marshrut-server-windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marshrut-server-windows
+          path: marshrut-server-windows.zip
+          if-no-files-found: error
+
   release:
     name: Файлы для релиза
     if: github.event_name == 'release'
-    needs: [android, windows, ios]
+    needs: [android, windows, ios, server]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -145,3 +174,4 @@ jobs:
             marshrut-release.apk
             marshrut-windows.zip
             marshrut-ios.ipa
+            marshrut-server-windows.zip
