@@ -1,21 +1,21 @@
 // Все провайдеры Riverpod приложения в одном месте (слой presentation).
-// Здесь собирается граф зависимостей: база данных → репозитории слоя data
-// → сервисы → данные для экранов (планы, темы, заметки, тема оформления).
-// Экраны получают данные только через эти провайдеры, а main() и тесты
-// подставляют базу и настройки через overrides.
+// Здесь собирается граф зависимостей: клиент API → репозитории слоя data,
+// которые обращаются к серверу → сервисы → данные для экранов (планы,
+// темы, заметки, тема оформления). Экраны получают данные только через эти
+// провайдеры, а main() и тесты подставляют настройки и HTTP-клиент через
+// overrides.
 
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/utils/password_hasher.dart';
-import '../../data/datasources/catalog_repository_impl.dart';
-import '../../data/db/app_database.dart';
-import '../../data/repositories/auth_repository_impl.dart';
-import '../../data/repositories/note_repository_impl.dart';
-import '../../data/repositories/plan_repository_impl.dart';
+import '../../data/api/api_auth_repository.dart';
+import '../../data/api/api_catalog_repository.dart';
+import '../../data/api/api_client.dart';
+import '../../data/api/api_note_repository.dart';
+import '../../data/api/api_plan_repository.dart';
+import '../../data/api/api_topic_repository.dart';
 import '../../data/repositories/session_storage_impl.dart';
-import '../../data/repositories/topic_repository_impl.dart';
 import '../../data/services/reminder_service_impl.dart';
 import '../../domain/entities/direction.dart';
 import '../../domain/entities/note.dart';
@@ -40,14 +40,8 @@ import 'auth_controller.dart';
 // Внешние зависимости. Переопределяются в main() и в тестах через overrides.
 // -------------------------------------------------------------------------
 
-/// Открытая база данных SQLite. Создаётся в main() и подставляется через
-/// `databaseProvider.overrideWithValue(...)`; без этого — ошибка.
-final databaseProvider = Provider<AppDatabase>(
-  (ref) => throw UnimplementedError('databaseProvider не переопределён'),
-);
-
-/// Хранилище простых настроек shared_preferences. Тоже подставляется
-/// в main() (его открытие асинхронное, поэтому делается заранее).
+/// Хранилище простых настроек shared_preferences. Подставляется в main()
+/// (его открытие асинхронное, поэтому делается заранее).
 final sharedPreferencesProvider = Provider<SharedPreferences>(
   (ref) =>
       throw UnimplementedError('sharedPreferencesProvider не переопределён'),
@@ -68,54 +62,70 @@ final todayProvider = Provider<DateTime>(
 );
 
 // -------------------------------------------------------------------------
-// Репозитории слоя data.
+// Работа с сервером API и репозитории слоя data.
 // -------------------------------------------------------------------------
 
-/// Каталог направлений и тем. Читает JSON-файлы из ресурсов приложения
-/// (rootBundle.loadString — чтение файла из папки assets).
-final catalogRepositoryProvider = Provider<CatalogRepository>(
-  (ref) => CatalogRepositoryImpl(rootBundle.loadString),
-);
-
-/// Хэширование паролей (в тестах подменяется вариантом с малым числом
-/// итераций, чтобы тесты шли быстро).
-final passwordHasherProvider = Provider<PasswordHasher>(
-  (ref) => PasswordHasher(),
-);
-
-/// Репозиторий пользователей: регистрация, вход, профиль.
-/// Получает базу данных и объект для хэширования паролей.
-final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepositoryImpl(
-    ref.watch(databaseProvider),
-    hasher: ref.watch(passwordHasherProvider),
-  ),
-);
-
-/// Хранилище сессии («Запомнить меня») и темы оформления.
+/// Хранилище сессии («Запомнить меня»), адреса сервера и темы оформления.
 final sessionStorageProvider = Provider<SessionStorage>(
   (ref) => SessionStorageImpl(ref.watch(sharedPreferencesProvider)),
 );
 
-/// Репозиторий планов, тем плана и занятий.
-final planRepositoryProvider = Provider<PlanRepository>(
-  (ref) => PlanRepositoryImpl(ref.watch(databaseProvider)),
+/// Объект пакета http, который отправляет запросы по сети. В тестах
+/// подменяется клиентом, который передаёт запросы серверу прямо в памяти.
+final httpClientProvider = Provider<http.Client>((ref) {
+  final client = http.Client();
+  // Когда провайдер больше не нужен, закрываем сетевые соединения.
+  ref.onDispose(client.close);
+  return client;
+});
+
+/// Клиент API: через него идут все запросы к данным. Адрес сервера и
+/// сохранённый токен входа берёт из хранилища сессии.
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final storage = ref.watch(sessionStorageProvider);
+  final client = ApiClient(
+    baseUrl: storage.serverUrl,
+    token: storage.authToken,
+    httpClient: ref.watch(httpClientProvider),
+  );
+  // Сервер ответил 401 («нужно войти»): токен больше не действует,
+  // поэтому выходим из аккаунта и показываем экран входа.
+  client.onUnauthorized = () =>
+      ref.read(authControllerProvider.notifier).onSessionExpired();
+  ref.onDispose(client.close);
+  return client;
+});
+
+/// Каталог направлений и тем: загружается с сервера (GET /api/directions).
+final catalogRepositoryProvider = Provider<CatalogRepository>(
+  (ref) => ApiCatalogRepository(ref.watch(apiClientProvider)),
 );
 
-/// Репозиторий своих тем и избранного. Тип — сама реализация, а не
-/// интерфейс: экранам нужен её дополнительный метод `directionOf`.
-final topicRepositoryProvider = Provider<TopicRepositoryImpl>(
-  (ref) => TopicRepositoryImpl(ref.watch(databaseProvider)),
+/// Репозиторий пользователей: регистрация, вход, профиль. Тип — сама
+/// реализация API: AuthController нужен её метод `logout` (выход на
+/// сервере).
+final authRepositoryProvider = Provider<ApiAuthRepository>(
+  (ref) => ApiAuthRepository(ref.watch(apiClientProvider)),
+);
+
+/// Репозиторий планов, тем плана и занятий.
+final planRepositoryProvider = Provider<PlanRepository>(
+  (ref) => ApiPlanRepository(ref.watch(apiClientProvider)),
+);
+
+/// Репозиторий своих тем и избранного.
+final topicRepositoryProvider = Provider<TopicRepository>(
+  (ref) => ApiTopicRepository(ref.watch(apiClientProvider)),
 );
 
 /// Репозиторий заметок.
 final noteRepositoryProvider = Provider<NoteRepository>(
-  (ref) => NoteRepositoryImpl(ref.watch(databaseProvider)),
+  (ref) => ApiNoteRepository(ref.watch(apiClientProvider)),
 );
 
 /// Репозиторий журнала «помидоров» (Pomodoro).
 final pomodoroRepositoryProvider = Provider<PomodoroRepository>(
-  (ref) => PomodoroRepositoryImpl(ref.watch(databaseProvider)),
+  (ref) => ApiPomodoroRepository(ref.watch(apiClientProvider)),
 );
 
 /// Сервис планов (domain/usecases/plan_service.dart): работает поверх
@@ -300,4 +310,38 @@ class ThemeModeController extends Notifier<String> {
 /// Провайдер темы оформления; его слушает MarshrutApp (lib/app.dart).
 final themeModeProvider = NotifierProvider<ThemeModeController, String>(
   ThemeModeController.new,
+);
+
+/// Адрес сервера API, к которому подключено приложение.
+class ServerUrlController extends Notifier<String> {
+  /// Начальное значение — адрес, сохранённый в прошлый раз.
+  @override
+  String build() => ref.watch(sessionStorageProvider).serverUrl;
+
+  /// Проверяет, что по адресу [url] отвечает сервер «Маршрута»
+  /// (GET /api/health), и только тогда сохраняет адрес. Если сервер не
+  /// отвечает, бросает AppException с причиной.
+  Future<void> change(String url) async {
+    // Приводим адрес к виду http://хост:порт.
+    final normalized = ApiClient.normalizeUrl(url);
+    // Пробный клиент с новым адресом: проверяем связь до сохранения.
+    final probe = ApiClient(
+      baseUrl: normalized,
+      httpClient: ref.read(httpClientProvider),
+    );
+    try {
+      await probe.checkHealth();
+    } finally {
+      probe.close();
+    }
+    // Сервер ответил: запоминаем адрес и переключаем на него клиент API.
+    await ref.read(sessionStorageProvider).saveServerUrl(normalized);
+    ref.read(apiClientProvider).baseUrl = normalized;
+    state = normalized;
+  }
+}
+
+/// Провайдер адреса сервера; его показывают экраны входа и профиля.
+final serverUrlProvider = NotifierProvider<ServerUrlController, String>(
+  ServerUrlController.new,
 );

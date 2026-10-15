@@ -91,6 +91,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           queryParameters: {'email': user.email, 'registered': '1'},
         ).toString(),
       );
+    } on ConnectionException catch (e) {
+      // Сервер недоступен — сообщение внизу экрана, а не под полем email.
+      if (mounted) showSnack(context, e.message, error: true);
     } on AppException catch (e) {
       // Ошибка уникальности email показывается прямо под полем.
       if (mounted) setState(() => _emailError = e.message);

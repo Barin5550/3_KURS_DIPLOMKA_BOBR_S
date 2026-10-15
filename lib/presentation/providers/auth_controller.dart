@@ -1,12 +1,13 @@
 // Контроллер входа в систему (слой presentation).
 // Хранит, вошёл ли пользователь и кто он, и выполняет вход, регистрацию,
 // выход, изменение профиля и настройку напоминаний через репозиторий
-// AuthRepository и сервис уведомлений. Его слушают роутер
-// (core/router) и экраны входа, регистрации, профиля и заставки (Splash).
+// пользователей (запросы к серверу API) и сервис уведомлений. Его слушают
+// роутер (core/router) и экраны входа, регистрации, профиля и заставки.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
+import '../../domain/repositories/repositories.dart';
 import 'providers.dart';
 
 /// Этапы проверки входа.
@@ -64,19 +65,34 @@ class AuthController extends Notifier<AuthState> {
   AuthState build() => const AuthState.unknown();
 
   /// Автовход: если в прошлый раз пользователь отметил «Запомнить меня»,
-  /// его id сохранён в shared_preferences.
+  /// его id и токен входа в API сохранены в shared_preferences.
   Future<void> restoreSession() async {
-    // Хранилище сессии и сохранённый в нём id пользователя.
+    // Хранилище сессии и сохранённые в нём id пользователя и токен.
     final storage = ref.read(sessionStorageProvider);
     final id = storage.currentUserId;
-    // Если id есть — загружаем пользователя из базы; его могли удалить.
-    final user = id == null
-        ? null
-        : await ref.read(authRepositoryProvider).userById(id);
+    final token = storage.authToken;
+    final AppUser? user;
+    try {
+      // Если сессия сохранена — спрашиваем у сервера данные пользователя
+      // (GET /api/me). Токен мог устареть, а аккаунт — быть удалён.
+      if (id == null || token == null) {
+        user = null;
+      } else {
+        ref.read(apiClientProvider).token = token;
+        user = await ref.read(authRepositoryProvider).userById(id);
+      }
+    } on AppException {
+      // Сервер недоступен: показываем экран входа, где можно проверить
+      // адрес сервера. Сохранённую сессию не стираем — войдём сами, когда
+      // сервер ответит.
+      state = const AuthState.unauthenticated();
+      return;
+    }
     if (user == null) {
-      // Никого не помним (или пользователь удалён): стираем id и
-      // показываем экран входа.
-      await storage.saveCurrentUserId(null);
+      // Никого не помним (или токен больше не действует): стираем сессию
+      // и показываем экран входа.
+      await storage.saveSession();
+      ref.read(apiClientProvider).token = null;
       state = const AuthState.unauthenticated();
     } else {
       // Пользователь найден — входим без ввода пароля.
@@ -89,20 +105,25 @@ class AuthController extends Notifier<AuthState> {
   /// Вход по email и паролю. При [remember] = `true` пользователь будет
   /// входить автоматически при следующих запусках.
   ///
-  /// Бросает AppException с текстом ошибки при неверных данных.
+  /// Бросает AppException с текстом ошибки при неверных данных или если
+  /// сервер недоступен.
   Future<void> login({
     required String email,
     required String password,
     bool remember = true,
   }) async {
-    // Проверка email и пароля в репозитории; при ошибке будет исключение.
+    // Запрос входа на сервер; при ошибке будет исключение. Токен, который
+    // выдал сервер, клиент API запоминает сам.
     final user = await ref
         .read(authRepositoryProvider)
         .login(email: email, password: password);
-    // «Запомнить меня»: сохраняем id; иначе стираем сохранённый.
+    // «Запомнить меня»: сохраняем id и токен; иначе стираем сохранённые.
     await ref
         .read(sessionStorageProvider)
-        .saveCurrentUserId(remember ? user.id : null);
+        .saveSession(
+          userId: remember ? user.id : null,
+          token: remember ? ref.read(apiClientProvider).token : null,
+        );
     // Меняем состояние — роутер сам переведёт на главный экран.
     state = AuthState.authenticated(user);
     // Ставим или снимаем напоминание по настройкам пользователя.
@@ -119,10 +140,13 @@ class AuthController extends Notifier<AuthState> {
       .read(authRepositoryProvider)
       .register(name: name, email: email, password: password);
 
-  /// Выход из системы: забываем пользователя и отменяем напоминание.
+  /// Выход из системы: сервер забывает токен, приложение — сессию, а
+  /// напоминание отменяется.
   Future<void> logout() async {
-    // Стираем сохранённый id, чтобы не было автовхода.
-    await ref.read(sessionStorageProvider).saveCurrentUserId(null);
+    // Стираем сохранённую сессию, чтобы не было автовхода.
+    await ref.read(sessionStorageProvider).saveSession();
+    // POST /api/auth/logout: токен перестаёт действовать и на сервере.
+    await ref.read(authRepositoryProvider).logout();
     try {
       // Напоминание больше не нужно — пользователь вышел.
       await ref.read(reminderServiceProvider).cancelDailyReminder();
@@ -131,6 +155,13 @@ class AuthController extends Notifier<AuthState> {
     }
     // Роутер увидит новое состояние и откроет экран входа.
     state = const AuthState.unauthenticated();
+  }
+
+  /// Сервер ответил «нужно войти» (код 401): токен устарел или аккаунт
+  /// удалён с другого устройства. Если пользователь был в аккаунте —
+  /// выходим, и роутер покажет экран входа.
+  Future<void> onSessionExpired() async {
+    if (state.isAuthenticated) await logout();
   }
 
   /// Удаляет аккаунт со всеми данными и выходит из системы.

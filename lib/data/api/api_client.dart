@@ -22,12 +22,6 @@ class ApiException extends AppException {
   final int statusCode;
 }
 
-/// Сервер недоступен: нет сети, неверный адрес или сервер не отвечает.
-class ConnectionException extends AppException {
-  /// [message] — объяснение для пользователя.
-  const ConnectionException(super.message);
-}
-
 /// Клиент API: отправляет запросы и разбирает ответы сервера.
 class ApiClient {
   /// [baseUrl] — адрес сервера, например `http://192.168.1.5:8080`;
@@ -40,10 +34,15 @@ class ApiClient {
     http.Client? httpClient,
     this.timeout = const Duration(seconds: 10),
   }) : _baseUrl = normalizeUrl(baseUrl),
+       _ownsHttp = httpClient == null,
        _http = httpClient ?? http.Client();
 
   /// Объект пакета http, который физически отправляет запросы.
   final http.Client _http;
+
+  /// true, если объект http создан этим клиентом (тогда его закрывает
+  /// [close]); переданный снаружи объект закрывает его владелец.
+  final bool _ownsHttp;
 
   /// Предельное время ожидания ответа.
   final Duration timeout;
@@ -183,6 +182,17 @@ class ApiClient {
     throw ApiException(response.statusCode, message);
   }
 
+  /// GET /api/health — проверяет, что по адресу [baseUrl] отвечает именно
+  /// сервер «Маршрута». При ошибке выбрасывает [AppException] с причиной.
+  Future<void> checkHealth() async {
+    final data = await get('/api/health');
+    if (data is! Map || data['service'] != 'Маршрут') {
+      throw const ConnectionException(
+        'По этому адресу отвечает не сервер «Маршрута»',
+      );
+    }
+  }
+
   /// Поток данных, который обновляется сам: сразу загружает значение через
   /// [load], а потом загружает заново после каждого изменения данных
   /// (событие из [changes]). Если загрузка не удалась, поток передаёт
@@ -199,6 +209,8 @@ class ApiClient {
     Timer? retry;
     // Номер последнего запроса: ответ на устаревший запрос отбрасывается.
     var generation = 0;
+    // true, когда экран закрыт и данные больше не нужны.
+    var cancelled = false;
 
     // Загружает данные и передаёт их в поток.
     Future<void> refresh() async {
@@ -207,11 +219,9 @@ class ApiClient {
       try {
         final value = await load();
         // Пока ждали ответ, мог уйти более новый запрос или экран закрылся.
-        if (current == generation && !controller.isClosed) {
-          controller.add(value);
-        }
+        if (current == generation && !cancelled) controller.add(value);
       } on Object catch (error, stack) {
-        if (current != generation || controller.isClosed) return;
+        if (current != generation || cancelled) return;
         // Показываем ошибку и через несколько секунд пробуем снова.
         controller.addError(error, stack);
         retry = Timer(retryDelay, refresh);
@@ -226,6 +236,7 @@ class ApiClient {
       },
       // Экран закрыт: отписываемся и отменяем повтор.
       onCancel: () async {
+        cancelled = true;
         retry?.cancel();
         await subscription?.cancel();
       },
@@ -235,7 +246,7 @@ class ApiClient {
 
   /// Закрывает соединения (при завершении работы).
   void close() {
-    _http.close();
+    if (_ownsHttp) _http.close();
     _changes.close();
   }
 }

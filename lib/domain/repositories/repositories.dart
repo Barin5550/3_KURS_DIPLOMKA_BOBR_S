@@ -30,6 +30,14 @@ class AppException implements Exception {
   String toString() => message;
 }
 
+/// Данные недоступны: нет связи с сервером, неверный адрес сервера или
+/// сервер не отвечает. Экраны показывают такую ошибку отдельно от ошибок
+/// в заполнении форм.
+class ConnectionException extends AppException {
+  /// Создаёт ошибку связи с текстом [message].
+  const ConnectionException(super.message);
+}
+
 /// Каталог направлений обучения (готовые графы тем).
 ///
 /// `abstract interface class` — интерфейс: только список методов без кода.
@@ -86,14 +94,25 @@ abstract interface class AuthRepository {
   });
 }
 
-/// Хранение текущей сессии и настроек интерфейса.
+/// Хранение текущей сессии и настроек на самом устройстве: кто вошёл,
+/// токен входа в API, адрес сервера и тема оформления.
 /// Реализация — SessionStorageImpl (shared_preferences).
 abstract interface class SessionStorage {
   /// id вошедшего пользователя или `null`, если никто не вошёл.
   int? get currentUserId;
 
-  /// Запоминает id вошедшего пользователя (`null` — «никто не вошёл»).
-  Future<void> saveCurrentUserId(int? userId);
+  /// Токен входа в API для запомненного пользователя или `null`.
+  String? get authToken;
+
+  /// Запоминает вошедшего пользователя и его токен; без аргументов —
+  /// «никто не вошёл».
+  Future<void> saveSession({int? userId, String? token});
+
+  /// Адрес сервера API, например `http://192.168.1.5:8080`.
+  String get serverUrl;
+
+  /// Запоминает адрес сервера API.
+  Future<void> saveServerUrl(String url);
 
   /// Сохранённая тема оформления (строка с названием режима).
   String get themeMode;

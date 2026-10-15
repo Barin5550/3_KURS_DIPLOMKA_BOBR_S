@@ -1,5 +1,5 @@
 // Экран входа в аккаунт: поля email и пароль, флажок «Запомнить меня»,
-// кнопка «Войти» и ссылка на регистрацию.
+// кнопка «Войти», ссылка на регистрацию и адрес сервера API.
 // Слой: presentation (интерфейс). Открывается роутером по адресу /login
 // (core/router/app_router.dart); сам вход выполняет AuthController
 // (presentation/providers/auth_controller.dart).
@@ -11,6 +11,7 @@ import '../../../core/utils/validators.dart';
 import '../../../domain/repositories/repositories.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common.dart';
+import '../../widgets/server_address.dart';
 
 /// Экран авторизации: email, пароль, «Запомнить меня», переход к регистрации.
 ///
@@ -283,6 +284,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onPressed: () => context.go('/register'),
                         child: const Text('Нет аккаунта? Зарегистрироваться'),
                       ),
+                      // Адрес сервера API: все данные приложение получает
+                      // с сервера, поэтому адрес можно проверить и
+                      // изменить прямо здесь.
+                      const ServerAddressButton(),
                     ],
                   ),
                 ),

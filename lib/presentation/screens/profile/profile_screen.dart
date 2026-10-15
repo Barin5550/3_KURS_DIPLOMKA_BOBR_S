@@ -158,6 +158,15 @@ class ProfileScreen extends ConsumerWidget {
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push('/plans'),
                   ),
+                  const Divider(height: 1),
+                  // Сервер API, с которым работает приложение (только
+                  // для просмотра; адрес меняется на экране входа).
+                  ListTile(
+                    key: const Key('profile_server'),
+                    leading: const Icon(Icons.dns_outlined),
+                    title: const Text('Сервер API'),
+                    subtitle: Text(ref.watch(serverUrlProvider)),
+                  ),
                 ],
               ),
             ),
