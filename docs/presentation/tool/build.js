@@ -155,7 +155,7 @@ function slideCompetitors(pres, C, section) {
     ["Учёт имеющихся знаний", "нет", "тест уровня", "нет", "нет", "диагностический тест"],
     ["План по дням под своё время", "нет", "ежедневная цель", "дедлайны курса", "вручную", "да"],
     ["Перестройка при отставании", "нет", "нет", "нет", "вручную", "одной кнопкой"],
-    ["Работа без интернета", "нет", "нет", "нет", "частично", "да, всё локально"],
+    ["Где хранятся данные", "облако сервиса", "облако сервиса", "облако сервиса", "облако сервиса", "свой сервер API"],
   ];
   const hdr = head.map((t, i) => ({ text: t, options: { bold: true, color: C.background1,
     fill: { color: i === 5 ? C.accent1 : C.text2 }, align: i ? "center" : "left" } }));
@@ -174,50 +174,50 @@ function slideCompetitors(pres, C, section) {
   s.addNotes("Я сравнил приложение с аналогами. roadmap.sh показывает схемы изучения технологий, но схема одна для всех и не превращается в расписание. " +
     "Duolingo хорошо мотивирует ежедневной целью, но план задаёт сам сервис. Курсы на Stepik и Coursera идут в своём темпе. " +
     "Планировщики вроде Notion или Todoist требуют расписывать всё вручную. " +
-    "«Маршрут» объединяет граф тем, учёт уровня через тест, расписание под ваше время и автоматическую перестройку, и работает без интернета. " +
+    "«Маршрут» объединяет граф тем, учёт уровня через тест, расписание под ваше время и автоматическую перестройку, а данные хранит на собственном сервере API без облачных сервисов. " +
     "(Перед защитой сверить таблицу с актуальными версиями сервисов.)");
   return s;
 }
 
-function slideArchitecture(pres, C, section, pwd) {
-  const s = light(pres, "Архитектура: три слоя Clean Architecture", section);
-  const layers = [
-    ["Presentation", "Экраны Material 3, провайдеры Riverpod, go_router с redirect", C.background2, C.text2, C.text1],
-    ["Domain · чистый Dart", "Алгоритм плана, сущности, интерфейсы репозиториев. Не зависит от Flutter", C.text2, C.background1, C.background1],
-    ["Data", "drift (SQLite), JSON-каталог тем, настройки, уведомления", C.background2, C.text2, C.text1],
-  ];
-  layers.forEach(([h, d, fill, hc, dc], i) => {
-    const y = 1.5 + i * 1.75;
-    card(s, pres, C, 0.6, y, 5.6, 1.4, fill, "Слой " + h);
-    T(s, h, { x: 0.9, y: y + 0.2, w: 5.0, h: 0.4, fontSize: 19, bold: true, color: hc });
-    T(s, d, { x: 0.9, y: y + 0.65, w: 5.1, h: 0.7, fontSize: 14, color: dc });
-  });
-  T(s, "↓ вызывает", { x: 2.6, y: 2.9, w: 2, h: 0.35, fontSize: 12, color: C.accent1, bold: true, align: "center", valign: "middle" });
-  T(s, "↑ реализует интерфейсы", { x: 2.1, y: 4.65, w: 3, h: 0.35, fontSize: 12, color: C.accent1, bold: true, align: "center", valign: "middle" });
-
+function slideArchitecture(pres, C, section) {
+  const s = light(pres, "Архитектура: приложение и сервер API", section);
+  const col = (title, sub, x, items, name) => {
+    card(s, pres, C, x, 1.4, 5.0, 3.45, C.background2, name);
+    T(s, [{ text: title, options: { bold: true, color: C.text2, fontSize: 17 } }, { text: "  " + sub, options: { color: C.accent6, fontSize: 13 } }],
+      { x: x + 0.25, y: 1.52, w: 4.6, h: 0.4 });
+    items.forEach(([t, core], i) => {
+      chip(s, pres, C, t, x + 0.25, 2.02 + i * 0.55, 4.5, 0.44, core ? C.text2 : C.background1, core ? C.background1 : C.text2, 13);
+      if (i < items.length - 1) T(s, "↓", { x: x + 2.3, y: 2.44 + i * 0.55, w: 0.4, h: 0.14, fontSize: 9, color: C.accent1, align: "center", valign: "middle" });
+    });
+  };
+  col("Приложение", "Flutter, телефон", 0.6, [["Экраны Material 3"], ["Провайдеры Riverpod"], ["PlanService и алгоритм · domain", true],
+    ["Репозитории API"], ["ApiClient: токен, ожидание 10 с, ошибки"]], "Приложение");
+  col("Сервер API", "Dart, shelf, ноутбук", 7.73, [["Маршруты shelf_router · 39 адресов"], ["Проверка токена, данных и владельца", true],
+    ["Репозитории drift"], ["База SQLite · 9 таблиц"]], "Сервер");
+  s.addShape(pres.shapes.LINE, { x: 5.75, y: 2.75, w: 1.83, h: 0, line: { color: C.accent1, width: 2.5, endArrowType: "triangle" }, objectName: "Запрос" });
+  s.addShape(pres.shapes.LINE, { x: 5.75, y: 3.75, w: 1.83, h: 0, line: { color: C.text2, width: 2.5, beginArrowType: "triangle" }, objectName: "Ответ" });
+  T(s, "запрос HTTP + JSON, токен Bearer", { x: 5.65, y: 2.05, w: 2.03, h: 0.62, fontSize: 12, bold: true, color: C.accent1, align: "center", valign: "bottom" });
+  T(s, "ответ JSON, код 200 / 201 / 204 / 4xx", { x: 5.65, y: 3.85, w: 2.03, h: 0.62, fontSize: 12, bold: true, color: C.text2, align: "center" });
   const choices = [
-    ["Состояние", "Riverpod", "BLoC, Provider", "Меньше шаблонного кода, чем BLoC; не зависит от BuildContext; зависимости подменяются в тестах"],
-    ["Хранение", "drift (SQLite)", "Hive, Firebase", "Данные связаны: пользователь → планы → занятия. Нужны SQL-запросы и транзакции. Firebase требует облака"],
-    ["Навигация", "go_router", "Navigator 1.0", "Декларативные маршруты, redirect закрывает экраны без входа"],
-    ["Пароли", pwd, "Firebase Auth", "Вход работает офлайн, пароль хранится только как хэш с солью"],
+    ["Состояние", "Riverpod", "вместо BLoC и Provider: меньше кода, подмена в тестах"],
+    ["Данные", "свой сервер API", "вместо Firebase: без облака и ключей, связи и SQL"],
+    ["Навигация", "go_router", "redirect закрывает экраны без входа"],
+    ["Вход", "PBKDF2 + токен", "вместо Firebase Auth: пароль только хэшем"],
   ];
-  choices.forEach(([k, v, alt, why], i) => {
-    const y = 1.5 + i * 1.3;
-    card(s, pres, C, 6.6, y, 6.13, 1.15, C.background1, "Выбор " + k);
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.6, y, w: 6.13, h: 1.15, rectRadius: 0.12, fill: { type: "none" },
-      line: { color: "D5DCEC", width: 1 }, objectName: "Рамка " + k });
-    T(s, [
-      { text: k + ": ", options: { color: C.accent6 } },
-      { text: v, options: { color: C.accent1, bold: true } },
-      { text: "  вместо " + alt, options: { color: C.accent6, fontSize: 12 } },
-    ], { x: 6.85, y: y + 0.12, w: 5.7, h: 0.35, fontSize: 16 });
-    T(s, why, { x: 6.85, y: y + 0.5, w: 5.7, h: 0.6, fontSize: 13, color: C.text1 });
+  choices.forEach(([k, v, why], i) => {
+    const x = 0.6 + i * 3.08;
+    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 5.05, w: 2.88, h: 1.7, rectRadius: 0.12, fill: { color: C.background1 },
+      line: { color: "D5DCEC", width: 1 }, objectName: "Выбор " + k });
+    T(s, k, { x: x + 0.2, y: 5.17, w: 2.5, h: 0.3, fontSize: 13, color: C.accent6 });
+    T(s, v, { x: x + 0.2, y: 5.47, w: 2.5, h: 0.4, fontSize: 17, bold: true, color: C.accent1 });
+    T(s, why, { x: x + 0.2, y: 5.9, w: 2.55, h: 0.8, fontSize: 12, color: C.text1 });
   });
-  s.addNotes("Архитектура построена по Clean Architecture и разделена на три слоя. Domain написан на чистом Dart и не знает о Flutter: здесь сущности и главный алгоритм, поэтому его легко тестировать. " +
-    "Data отвечает за хранение: SQLite через drift, каталог тем в JSON и настройки. Presentation — экраны и провайдеры Riverpod. " +
-    "Riverpod выбран вместо BLoC, потому что требует меньше шаблонного кода, и вместо Provider, потому что не зависит от BuildContext и легко подменяется в тестах. " +
-    "drift выбран, потому что данные связаны: у пользователя планы, у плана занятия. Hive хранит пары ключ-значение без связей, а Firebase требует облака и интернета. " +
-    "go_router с redirect не пускает на закрытые экраны без входа.");
+  s.addNotes("Система состоит из двух программ. Приложение на Flutter построено по Clean Architecture: экраны берут данные у провайдеров Riverpod, провайдеры вызывают PlanService и алгоритм в слое domain на чистом Dart, а данные получают через репозитории API. " +
+    "Все запросы идут через общий клиент ApiClient: он добавляет токен, ждёт ответ не дольше 10 секунд и превращает ошибки в понятные сообщения. " +
+    "Сервер API тоже написан на Dart, на библиотеке shelf. Он выбирает обработчик по адресу, проверяет токен, данные и то, что запись принадлежит этому пользователю, и только после этого работает с базой SQLite через drift. " +
+    "Приложение к базе напрямую не обращается: получение, добавление, изменение и удаление идут только через API. " +
+    "Riverpod выбран вместо BLoC и Provider: меньше шаблонного кода, легко подменять зависимости в тестах. Свой сервер вместо Firebase — нет облака, ключей и внешних сервисов, а данные связаны и требуют SQL. " +
+    "Слоистая архитектура себя оправдала: при переходе на сервер заменились только репозитории, алгоритм и экраны остались прежними.");
   return s;
 }
 
@@ -258,12 +258,12 @@ async function buildFinal() {
   const { pres, C } = newDeck("Маршрут — итоговая защита курсового проекта");
   pres.addSection({ title: "Введение" });
   const s1 = slideTitle(pres, C, "Курсовой проект · итоговая защита", "Введение");
-  s1.addNotes("Здравствуйте. Меня зовут Баринов Николай, группа ПО2410. Представляю курсовой проект «Маршрут» — приложение для автоматического формирования персонального плана обучения. Руководитель — Синтиков Еркебулан Канатович. Приложение написано на Flutter и Dart и работает на Android и Windows.");
+  s1.addNotes("Здравствуйте. Меня зовут Баринов Николай, группа ПО2410. Представляю курсовой проект «Маршрут» — приложение для автоматического формирования персонального плана обучения. Руководитель — Синтиков Еркебулан Канатович. Приложение написано на Flutter и Dart, работает на Android, iPhone и Windows, а данные хранит на собственном сервере API.");
   slideProblem(pres, C, "Введение");
   slideCompetitors(pres, C, "Введение");
 
   pres.addSection({ title: "Решение" });
-  slideArchitecture(pres, C, "Решение", "PBKDF2 локально");
+  slideArchitecture(pres, C, "Решение");
   slideAlgorithm(pres, C, "Решение");
 
   // Пример работы алгоритма
@@ -309,7 +309,7 @@ async function buildFinal() {
     shots.forEach(([n, c], i) => phone(s, n, 0.6 + i * (w + g), 2.1, h, c, C));
     s.addNotes("Покажу обязательный сценарий первого семестра. Заставка с логотипом сама переходит на вход или, если сессия сохранена, сразу на главную. " +
       "Регистрация проверяет каждое поле: пустые поля, формат email, пароль из букв и цифр, совпадение паролей, уникальность email. " +
-      "При неверном пароле вход показывает понятное сообщение, есть ссылка на регистрацию. Пользователь хранится в базе, после входа открывается главная с прогрессом и задачами на сегодня. " +
+      "При неверном пароле вход показывает понятное сообщение, есть ссылка на регистрацию. Пользователь хранится в базе на сервере, после входа сервер выдаёт токен, и открывается главная с прогрессом и задачами на сегодня. " +
       "Пять вкладок внизу: Главная, План, Темы, Статистика, Профиль. В профиле кнопка «Выйти»: после выхода открывается вход, а закрытые экраны без входа недоступны — это делает redirect в go_router. " +
       "Тот же сценарий автоматически проходит интеграционный тест.");
   }
@@ -371,7 +371,7 @@ async function buildFinal() {
     const s = light(pres, "Полный функционал и дополнительные возможности", "2 семестр");
     T(s, "Основные сценарии связаны между собой: отметка занятия меняет прогресс, статистику и план", { x: 0.6, y: 1.45, w: 4.3, h: 0.95, fontSize: 15, color: C.text1 });
     const feats = ["Перепланирование", "Pomodoro", "Несколько планов", "Свои темы", "Заметки", "Поиск", "Фильтры", "Избранное",
-      "Категории", "Уведомления", "История", "Графики", "Тёмная тема", "Windows"];
+      "Категории", "Уведомления", "История", "Графики", "Тёмная тема", "iPhone и Windows"];
     feats.forEach((t, i) => {
       const col = i % 2, row = Math.floor(i / 2);
       const main = i < 5;
@@ -385,45 +385,72 @@ async function buildFinal() {
       "Можно вести несколько планов, добавлять свои темы и заметки. Из дополнительных функций — поиск, фильтры по категориям, избранное, ежедневное напоминание, таймер Pomodoro с уведомлением, история и графики прогресса на fl_chart, светлая и тёмная тема.");
   }
   {
-    const s = light(pres, "Данные: 8 связанных таблиц SQLite", "2 семестр");
+    const s = light(pres, "Данные: 9 таблиц SQLite на сервере, доступ только через API", "2 семестр");
     const box = (name, sub, x, y, w, fill, tc) => {
       s.addText([{ text: name, options: { bold: true, fontSize: 14, breakLine: true } }, { text: sub, options: { fontSize: 11 } }],
-        { shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.1, x, y, w, h: 0.62, fill: { color: fill || C.background2 },
+        { shape: pres.shapes.ROUNDED_RECTANGLE, rectRadius: 0.1, x, y, w, h: 0.6, fill: { color: fill || C.background2 },
           line: { type: "none" }, color: tc || C.text2, align: "center", valign: "middle", margin: 0.03, objectName: "Таблица " + name });
     };
     const line = (x1, y1, x2, y2) => s.addShape(pres.shapes.LINE, { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1),
       flipV: (y2 < y1) !== (x2 < x1), line: { color: C.accent6, width: 1.25, endArrowType: "triangle" }, objectName: "Связь" });
-    const ux = 0.6, uy = 3.65, uw = 2.0;
+    const kids = [["plans", "планы"], ["custom_topics", "свои темы"], ["notes", "заметки"], ["favorites", "избранное"], ["pomodoro_logs", "помидоры"], ["api_tokens", "токены входа"]];
+    const kx = 3.2, kw = 2.2, ky = 1.5, step = 0.8;
+    const ux = 0.6, uw = 1.9, uy = ky + 2.5 * step;
     box("users", "пользователи", ux, uy, uw, C.text2, C.background1);
-    const kids = [["plans", "планы"], ["custom_topics", "свои темы"], ["notes", "заметки"], ["favorites", "избранное"], ["pomodoro_logs", "помидоры"]];
-    const kx = 3.4, kw = 2.2;
     kids.forEach(([n, d], i) => {
-      const y = 1.75 + i * 0.95;
-      box(n, d, kx, y, kw, i === 0 ? C.accent1 : C.background2, i === 0 ? C.background1 : C.text2);
-      line(ux + uw, uy + 0.31, kx, y + 0.31);
+      const y = ky + i * step;
+      box(n, d, kx, y, kw, i === 0 ? C.accent1 : (i === 5 ? "FFE3C4" : C.background2), i === 0 ? C.background1 : C.text2);
+      line(ux + uw, uy + 0.3, kx, y + 0.3);
     });
-    const px = 6.4, pw = 2.2;
+    const px = 6.1, pw = 2.0;
     [["plan_topics", "темы плана"], ["sessions", "занятия"]].forEach(([n, d], i) => {
-      const y = 1.45 + i * 1.0;
+      const y = 1.45 + i * 0.85;
       box(n, d, px, y, pw, C.background2, C.text2);
-      line(kx + kw, 1.75 + 0.31, px, y + 0.31);
+      line(kx + kw, ky + 0.3, px, y + 0.3);
     });
-    card(s, pres, C, 6.4, 3.75, 2.3, 2.4, C.text2, "Каскад");
+    card(s, pres, C, 6.1, 3.35, 2.0, 2.75, C.text2, "Каскад");
     T(s, [{ text: "1 : N", options: { bold: true, color: C.accent4, fontSize: 20, breakLine: true } },
-      { text: "ON DELETE CASCADE: удаление аккаунта удаляет все его данные", options: { color: C.background1 } }],
-      { x: 6.6, y: 3.9, w: 1.95, h: 2.1, fontSize: 13 });
-    T(s, "Каталог тем — JSON в assets: новое направление без изменения кода", { x: 0.6, y: 6.4, w: 8.1, h: 0.35, fontSize: 12, color: C.accent6, italic: true });
-    card(s, pres, C, 9.05, 1.45, 3.68, 4.95, C.background2, "CRUD");
-    T(s, "CRUD ЧЕРЕЗ ИНТЕРФЕЙС", { x: 9.3, y: 1.65, w: 3.2, h: 0.3, fontSize: 13, bold: true, color: C.accent1, charSpacing: 1 });
-    T(s, [
-      { text: "Планы: создать, переименовать, сделать активным, удалить", options: { bullet: true, breakLine: true } },
-      { text: "Свои темы и заметки: создать, найти, изменить, удалить", options: { bullet: true, breakLine: true } },
-      { text: "Профиль: изменить, аккаунт: удалить", options: { bullet: true, breakLine: true } },
-      { text: "Ошибки: понятные сообщения, пустые состояния", options: { bullet: true } },
-    ], { x: 9.3, y: 2.05, w: 3.25, h: 4.2, fontSize: 14, color: C.text1, paraSpaceAfter: 8 });
-    s.addNotes("Данные хранятся локально в SQLite через drift. В базе восемь таблиц: у пользователя есть планы, свои темы, заметки, избранное и история «помидоров»; план состоит из тем и занятий. " +
-      "Все внешние ключи объявлены с каскадным удалением: удаление плана удаляет его занятия, удаление аккаунта — все данные пользователя. Каталог направлений лежит в JSON, поэтому новое направление добавляется без изменения кода. " +
-      "Через интерфейс доступны все операции CRUD над планами, своими темами и заметками, а ошибки, например пустое название или занятый email, выводятся понятными сообщениями.");
+      { text: "ON DELETE CASCADE: удаление аккаунта удаляет все его данные и токены", options: { color: C.background1 } }],
+      { x: 6.28, y: 3.5, w: 1.7, h: 2.5, fontSize: 12 });
+    T(s, "Каталог тем — JSON на сервере, приложение получает его через GET /api/directions", { x: 0.6, y: 6.4, w: 7.6, h: 0.35, fontSize: 12, color: C.accent6, italic: true });
+    card(s, pres, C, 8.5, 1.45, 4.23, 5.3, C.background2, "CRUD");
+    T(s, "ПОЛНЫЙ CRUD ЧЕРЕЗ API", { x: 8.75, y: 1.62, w: 3.8, h: 0.3, fontSize: 13, bold: true, color: C.accent1, charSpacing: 1 });
+    const crud = [["Заметки", "/api/notes"], ["Свои темы", "/api/custom-topics"], ["Планы", "/api/plans"]];
+    crud.forEach(([h, url], i) => {
+      const y = 2.05 + i * 0.95;
+      T(s, h, { x: 8.75, y, w: 3.8, h: 0.32, fontSize: 15, bold: true, color: C.text2 });
+      T(s, [{ text: "GET · POST · PUT · DELETE  ", options: { color: C.text1 } }, { text: url, options: { color: C.accent6, fontFace: "Courier New", fontSize: 11 } }],
+        { x: 8.75, y: y + 0.34, w: 3.85, h: 0.45, fontSize: 12 });
+    });
+    T(s, "КОДЫ ОТВЕТОВ", { x: 8.75, y: 4.95, w: 3.8, h: 0.3, fontSize: 13, bold: true, color: C.accent1, charSpacing: 1 });
+    ["200", "201", "204", "400", "401", "404", "500"].forEach((c, i) => {
+      chip(s, pres, C, c, 8.75 + (i % 4) * 0.93, 5.32 + Math.floor(i / 4) * 0.55, 0.8, 0.42, c[0] === "2" ? C.text2 : C.background1, c[0] === "2" ? C.background1 : C.accent1, 13);
+    });
+    s.addNotes("Данные хранятся в базе SQLite на сервере, работа с базой идёт через drift. Таблиц девять: у пользователя есть планы, свои темы, заметки, избранное, история «помидоров» и токены входа; план состоит из тем и занятий. " +
+      "Все внешние ключи объявлены с каскадным удалением: удаление аккаунта удаляет все данные пользователя и его токены. " +
+      "Приложение к базе напрямую не обращается: у сервера 39 адресов API, и полный CRUD — получение, добавление, изменение и удаление — есть у заметок, своих тем и планов. " +
+      "Сервер отвечает кодами HTTP: 200, 201 и 204 при успехе, 400 при неверных данных, 401 без токена, 404 если запись не найдена или чужая, 500 при сбое. Приложение показывает каждую ошибку понятным сообщением.");
+  }
+  {
+    const s = light(pres, "Демонстрация: каждое действие видно в журнале сервера", "2 семестр");
+    const h = 4.9, w = h * PHONE_RATIO;
+    phone(s, "26_server_address", 0.6, 1.45, h, "Адрес сервера", C);
+    phone(s, "13_notes", 0.6 + w + 0.35, 1.45, h, "Заметки", C);
+    const tx = 0.6 + 2 * w + 0.8, tw = 12.73 - tx;
+    card(s, pres, C, tx, 1.45, tw, 2.75, C.text1, "Журнал сервера");
+    T(s, "ОКНО СЕРВЕРА НА НОУТБУКЕ", { x: tx + 0.25, y: 1.6, w: tw - 0.5, h: 0.3, fontSize: 12, bold: true, color: C.accent4, charSpacing: 1 });
+    const log = [["POST  ", "/api/auth/login", "200"], ["POST  ", "/api/notes", "201"], ["PUT   ", "/api/notes/1", "204"], ["DELETE", "/api/notes/1", "204"], ["GET   ", "/api/notes", "401"]];
+    T(s, log.map(([m, u, c], i) => ({ text: m + " " + u.padEnd(17, " ") + "→ " + c, options: { color: c[0] === "2" ? C.background1 : C.accent4, breakLine: i < log.length - 1 } })),
+      { x: tx + 0.25, y: 2.0, w: tw - 0.5, h: 2.05, fontSize: 14, fontFace: "Courier New", paraSpaceAfter: 2 });
+    const steps = ["Запустить сервер, телефон в той же сети Wi-Fi", "Создать, изменить и удалить заметку", "В журнале: POST → 201, PUT и DELETE → 204", "Выключить сервер: «Нет связи с сервером»"];
+    steps.forEach((t, i) => {
+      const y = 4.45 + i * 0.58;
+      circle(s, pres, C, i + 1, tx, y, 0.42);
+      T(s, t, { x: tx + 0.6, y, w: tw - 0.6, h: 0.42, fontSize: 14, color: C.text1, valign: "middle" });
+    });
+    s.addNotes("Покажу, что данные идут только через API. Сервер запущен на ноутбуке, его окно видно, телефон подключён к той же сети Wi-Fi; адрес сервера вводится на экране входа и проверяется запросом к серверу. " +
+      "Создаю заметку — в журнале сервера появляется строка POST /api/notes с кодом 201. Изменяю её — PUT с кодом 204, удаляю — DELETE с кодом 204. " +
+      "Теперь выключаю сервер и пробую сохранить заметку: приложение показывает красное сообщение «Нет связи с сервером», а данные не меняются. Включаю сервер, повторяю действие — оно сохраняется.");
   }
   {
     const s = light(pres, "Профиль и безопасность", "2 семестр");
@@ -441,11 +468,11 @@ async function buildFinal() {
     card(s, pres, C, rx, 4.1, 12.73 - rx, 2.3, C.text2, "Безопасность");
     T(s, "100 000", { x: rx + 0.3, y: 4.3, w: 3, h: 0.8, fontSize: 40, bold: true, color: C.accent4 });
     T(s, "итераций PBKDF2-HMAC-SHA256", { x: rx + 0.3, y: 5.1, w: 3.2, h: 0.4, fontSize: 14, bold: true, color: C.background1 });
-    T(s, "Соль 16 байт. Старые хэши SHA-256 пересчитываются при входе. Расчёт в фоновом изоляте не тормозит интерфейс.",
+    T(s, "Соль 16 байт. Токен входа — 32 случайных байта, в базе только его SHA-256, действует 30 дней, удаляется при выходе.",
       { x: rx + 3.4, y: 4.35, w: 12.73 - rx - 3.65, h: 1.9, fontSize: 13, color: C.background1, valign: "middle" });
     s.addNotes("Профиль показывает данные пользователя и статистику, позволяет изменить имя, email и цвет аватара, сменить пароль и удалить аккаунт — для этого нужно ввести пароль ещё раз. " +
       "Пароли не хранятся в открытом виде: используется PBKDF2-HMAC-SHA256 со 100 000 итераций и случайной солью. В формате хэша записано число итераций, поэтому его можно увеличить в следующей версии. " +
-      "Старые хэши SHA-256 из первого семестра принимаются один раз и сразу пересчитываются.");
+      "После входа сервер выдаёт токен из 32 случайных байт; в базе хранится только его хэш SHA-256, поэтому копия базы не даёт ни паролей, ни действующих токенов. Токен действует 30 дней и удаляется при выходе.");
   }
   {
     const s = light(pres, "UI/UX: одна система на телефоне и компьютере", "2 семестр");
@@ -464,35 +491,35 @@ async function buildFinal() {
       "Для пустых списков есть подсказки, а удаление всегда требует подтверждения. Все экраны проверены матрицей из 280 снимков в семи вариантах.");
   }
   {
-    const s = light(pres, "Тестирование: 97 автотестов и 24 исправленные ошибки", "2 семестр");
-    const stats = [["97", "модульных и виджет-тестов"], ["36", "тест-кейсов"], ["280", "снимков экранов проверено"], ["24", "ошибки найдены и исправлены"]];
+    const s = light(pres, "Тестирование: 137 автотестов и 27 исправленных ошибок", "2 семестр");
+    const stats = [["137", "модульных и виджет-тестов"], ["45", "тест-кейсов"], ["280", "снимков экранов проверено"], ["27", "ошибок найдено и исправлено"]];
     stats.forEach(([n, l], i) => {
       const x = 0.6 + i * 3.08;
       card(s, pres, C, x, 1.45, 2.85, 1.6, C.background2, "Факт " + l);
       T(s, n, { x: x + 0.25, y: 1.55, w: 2.4, h: 0.85, fontSize: 44, bold: true, color: C.accent1 });
       T(s, l, { x: x + 0.25, y: 2.4, w: 2.45, h: 0.55, fontSize: 13, color: C.text1 });
     });
-    s.addChart(pres.charts.BAR, [{ name: "Тестов", labels: ["Алгоритм", "Утилиты и роутер", "Слой данных", "Виджет-тесты", "Интеграционный"], values: [32, 29, 18, 18, 1] }], {
-      x: 0.6, y: 3.3, w: 6.6, h: 3.4, barDir: "bar", chartColors: [HEX.dk2], showValue: true, dataLabelPosition: "outEnd",
+    s.addChart(pres.charts.BAR, [{ name: "Тестов", labels: ["Алгоритм", "Утилиты и роутер", "Сервер API", "Виджет-тесты", "Репозитории БД", "Клиент API", "Интеграционный"], values: [32, 29, 23, 21, 18, 14, 1] }], {
+      x: 0.6, y: 3.25, w: 6.6, h: 3.5, barDir: "bar", chartColors: [HEX.dk2], showValue: true, dataLabelPosition: "outEnd",
       dataLabelColor: HEX.dk1, dataLabelFontSize: 12, dataLabelFontFace: "+mn-lt", catAxisLabelColor: HEX.dk1, catAxisLabelFontSize: 12,
       catAxisLabelFontFace: "+mn-lt", valAxisHidden: true, valGridLine: { style: "none" }, catGridLine: { style: "none" },
       catAxisOrientation: "maxMin", showLegend: false, showTitle: true, title: "Состав автотестов", titleFontSize: 14,
-      titleColor: HEX.dk2, titleFontFace: "+mn-lt", barGapWidthPct: 60, objectName: "Диаграмма тестов" });
+      titleColor: HEX.dk2, titleFontFace: "+mn-lt", barGapWidthPct: 50, objectName: "Диаграмма тестов" });
     card(s, pres, C, 7.6, 3.3, 5.13, 3.4, C.text2, "CI");
     T(s, "GITHUB ACTIONS НА КАЖДОЕ ИЗМЕНЕНИЕ", { x: 7.85, y: 3.5, w: 4.7, h: 0.3, fontSize: 13, bold: true, color: C.accent4, charSpacing: 1 });
-    ["Форматирование и flutter analyze", "Все модульные и виджет-тесты", "Интеграционный тест в Linux", "Сборка APK и версии для Windows"].forEach((t, i) => {
+    ["Формат, flutter analyze, все тесты", "Интеграционный тест с HTTP-сервером", "Сборки: APK, IPA для iPhone, Windows", "Программа-сервер API для Windows"].forEach((t, i) => {
       circle(s, pres, C, i + 1, 7.85, 4.0 + i * 0.62, 0.42);
       T(s, t, { x: 8.45, y: 4.0 + i * 0.62, w: 4.1, h: 0.42, fontSize: 14, color: C.background1, valign: "middle" });
     });
-    s.addNotes("Приложение покрыто 97 модульными и виджет-тестами: 32 проверяют алгоритм, 18 — слой данных на базе SQLite в памяти, 18 — экраны и сценарии. Ещё есть интеграционный тест, который проходит весь сценарий в настоящем приложении. " +
-      "В документе 36 тест-кейсов и журнал из 24 найденных и исправленных ошибок. Перед сдачей я проверил матрицу из 280 снимков экранов. " +
-      "GitHub Actions на каждое изменение проверяет форматирование, запускает анализатор, все тесты, интеграционный тест и собирает APK и версию для Windows.");
+    s.addNotes("Приложение проверяют 137 модульных и виджет-тестов. 32 проверяют алгоритм, 23 — сервер API: коды ответов, отказ без токена, защиту чужих записей, CRUD; 14 — клиент API: выключенный сервер, таймаут, ответ 401. " +
+      "Виджет-тесты запускают приложение вместе с настоящим сервером API, у которого база в памяти, поэтому проверяется весь путь данных — от экрана до базы. Интеграционный тест проходит сценарий в настоящем приложении с настоящим HTTP-сервером. " +
+      "В документе 45 тест-кейсов и журнал из 27 найденных и исправленных ошибок. GitHub Actions на каждое изменение запускает все проверки и собирает APK, файл для iPhone, версию для Windows и программу-сервер.");
   }
   {
     const s = light(pres, "Курсовая работа и релизная сборка", "2 семестр");
-    const parts = [["Введение", "актуальность, цель, 8 задач"], ["Глава 1", "предметная область, аналоги, выбор технологий"],
-      ["Глава 2", "архитектура, ER-диаграмма, алгоритм, экраны, тесты"], ["Заключение", "результаты по каждой задаче"],
-      ["Литература", "43 источника по ГОСТ"], ["Приложения А–И", "код ключевых модулей"]];
+    const parts = [["Введение", "актуальность, цель, 9 задач"], ["Глава 1", "предметная область, аналоги, выбор технологий"],
+      ["Глава 2", "архитектура, база и API сервера, алгоритм, экраны, тесты"], ["Заключение", "результаты по каждой задаче"],
+      ["Литература", "50 источников по ГОСТ"], ["Приложения А–Л", "код алгоритма, сервера и клиента API"]];
     parts.forEach(([h, d], i) => {
       const col = i % 2, row = Math.floor(i / 2);
       const x = 0.6 + col * 3.75, y = 1.45 + row * 1.25;
@@ -500,7 +527,7 @@ async function buildFinal() {
       T(s, h, { x: x + 0.22, y: y + 0.13, w: 3.1, h: 0.38, fontSize: 16, bold: true, color: C.text2 });
       T(s, d, { x: x + 0.22, y: y + 0.52, w: 3.15, h: 0.5, fontSize: 12, color: C.text1 });
     });
-    T(s, [{ text: "80 страниц", options: { bold: true, color: C.accent1 } }, { text: " · Times New Roman 14, интервал 1,5 · DOCX и PDF", options: { color: C.accent6 } }],
+    T(s, [{ text: "105 страниц", options: { bold: true, color: C.accent1 } }, { text: " · Times New Roman 14, интервал 1,5 · DOCX и PDF", options: { color: C.accent6 } }],
       { x: 0.6, y: 5.3, w: 7.3, h: 0.4, fontSize: 14 });
     card(s, pres, C, 8.3, 1.45, 4.43, 4.95, C.text2, "Релиз");
     s.addImage({ path: path.join(IMG, "icon.png"), x: 8.6, y: 1.75, w: 0.9, h: 0.9, objectName: "Иконка", altText: "Иконка «Маршрут»" });
@@ -508,12 +535,12 @@ async function buildFinal() {
     T(s, [
       { text: "flutter build apk --release", options: { fontFace: "Courier New", color: C.accent4, breakLine: true } },
       { text: " ", options: { breakLine: true, fontSize: 8 } },
-      { text: "APK для Android и архив для Windows собирает GitHub Actions", options: { bullet: true, breakLine: true } },
-      { text: "Своя иконка и название «Маршрут»", options: { bullet: true, breakLine: true } },
-      { text: "Запуск без ключей и облака", options: { bullet: true } },
+      { text: "GitHub Actions собирает APK для Android, IPA для iPhone, Windows и сервер API", options: { bullet: true, breakLine: true } },
+      { text: "iPhone: установка через Sideloadly", options: { bullet: true, breakLine: true } },
+      { text: "Без облака и ключей: сервер на своём ноутбуке", options: { bullet: true } },
     ], { x: 8.6, y: 2.95, w: 3.9, h: 3.2, fontSize: 14, color: C.background1, paraSpaceAfter: 6 });
-    s.addNotes("Пояснительная записка — 80 страниц: введение с целью и задачами, теоретическая глава с анализом аналогов и обоснованием технологий, практическая глава с архитектурой, ER-диаграммой, схемой алгоритма и скриншотами, заключение, 43 источника и приложения с кодом. " +
-      "Релизная сборка: APK для Android и версия для Windows собираются автоматически командой flutter build apk --release в GitHub Actions. Приложение можно установить на телефон и запустить без интернета.");
+    s.addNotes("Пояснительная записка — 105 страниц: введение с целью и девятью задачами, теоретическая глава с анализом аналогов и обоснованием технологий, практическая глава с архитектурой, базой данных и API сервера, схемой алгоритма и скриншотами, заключение, 50 источников и приложения с кодом алгоритма, сервера и клиента API. " +
+      "Сборки делает GitHub Actions: APK для Android командой flutter build apk --release, файл IPA для iPhone, который ставится через Sideloadly, версию для Windows и программу-сервер для ноутбука.");
   }
 
   pres.addSection({ title: "Итоги" });
@@ -522,9 +549,9 @@ async function buildFinal() {
     T(s, "Итоги", { x: 0.7, y: 0.6, w: 8, h: 0.9, fontSize: 40, bold: true, color: C.background1 });
     const res = [
       "Приложение строит персональный план по графу тем, тесту, времени и дедлайну",
-      "Clean Architecture: алгоритм на чистом Dart, Riverpod, drift, go_router",
+      "Клиент-сервер: приложение Flutter и свой сервер API на Dart с SQLite",
       "Полный сценарий, CRUD, перепланирование, Pomodoro, статистика, уведомления",
-      "97 тестов, интеграционный тест, CI и релизный APK",
+      "137 тестов, CI и сборки для Android, iPhone и Windows",
     ];
     res.forEach((t, i) => {
       circle(s, pres, C, i + 1, 0.7, 1.85 + i * 0.95, 0.6);
@@ -534,7 +561,7 @@ async function buildFinal() {
     phone(s, "09_stats", 8.0, 0.75, 6.0, null, C);
     phone(s, "12_pomodoro", 10.25, 1.4, 5.25, null, C);
     s.addNotes("Подведу итог. Все задачи курсовой выполнены: приложение «Маршрут» строит персональный план обучения с учётом знаний, времени и дедлайна и перестраивает его при отставании. " +
-      "Оно построено по Clean Architecture, покрыто тестами, собирается автоматически и работает офлайн на Android и Windows. Дальнейшее развитие — синхронизация между устройствами и экспорт плана. Спасибо за внимание, готов ответить на вопросы.");
+      "Приложение работает с данными только через собственный сервер API, покрыто тестами и собирается автоматически для Android, iPhone и Windows. Дальнейшее развитие — размещение сервера в интернете с шифрованием HTTPS и экспорт плана. Спасибо за внимание, готов ответить на вопросы.");
   }
   const file = path.join(OUT, "Маршрут_итоговая_защита.pptx");
   await pres.writeFile({ fileName: file });
@@ -551,7 +578,7 @@ async function buildConcept() {
   slideProblem(pres, C, "Тема");
   slideCompetitors(pres, C, "Тема");
   pres.addSection({ title: "Стек и архитектура" });
-  slideArchitecture(pres, C, "Стек и архитектура", "PBKDF2 локально");
+  slideArchitecture(pres, C, "Стек и архитектура");
   slideAlgorithm(pres, C, "Стек и архитектура");
   pres.addSection({ title: "UI/UX и roadmap" });
   {
@@ -586,8 +613,8 @@ async function buildConcept() {
     const s = light(pres, "Roadmap: от концепции к релизу", "UI/UX и roadmap");
     const st = [["Этап 0", "Концепция", "Тема, аналоги, архитектура, прототип"], ["Семестр 1", "Авторизация", "Splash, регистрация, вход, навигация, профиль, выход"],
       ["Семестр 1", "Основной раздел", "Генератор плана, онбординг и тест, главная, введение и глава 1"],
-      ["Семестр 2", "Полный функционал", "Перепланирование, Pomodoro, CRUD, поиск, уведомления, графики"],
-      ["Семестр 2", "Релиз", "Тесты, релизный APK, практическая глава, итоговая защита"]];
+      ["Семестр 2", "Полный функционал", "Сервер API, CRUD через API, перепланирование, Pomodoro, графики"],
+      ["Семестр 2", "Релиз", "Тесты, APK и iPhone, практическая глава, итоговая защита"]];
     const gap = 2.43;
     s.addShape(pres.shapes.LINE, { x: 1.6, y: 2.0, w: gap * 4, h: 0, line: { color: C.accent5, width: 2 }, objectName: "Линия времени" });
     st.forEach(([p, h, d], i) => {
@@ -600,11 +627,11 @@ async function buildConcept() {
     card(s, pres, C, 0.6, 5.05, 12.13, 1.3, C.text2, "Итог");
     T(s, [
       { text: "«Маршрут» превращает хаотичное самообучение в план по дням. ", options: { bold: true, color: C.background1 } },
-      { text: "Работает офлайн, запускается командой flutter run. Спасибо за внимание!", options: { color: C.accent4 } },
+      { text: "Данные на своём сервере API, без облака и ключей. Спасибо за внимание!", options: { color: C.accent4 } },
     ], { x: 0.9, y: 5.05, w: 11.6, h: 1.3, fontSize: 18, valign: "middle" });
     s.addNotes("Работа разбита на этапы. Сегодня защищается концепция: тема, архитектура и прототип. В первом семестре реализуется обязательный сценарий — заставка, регистрация, вход, главная, навигация, профиль, выход — и генератор плана. " +
-      "Во втором семестре — перепланирование, Pomodoro, несколько планов, CRUD, поиск, уведомления и графики, затем тесты и релизный APK. " +
-      "Итог: «Маршрут» превращает хаотичное самообучение в понятный план по дням, работает офлайн и запускается одной командой. Спасибо за внимание, готов ответить на вопросы.");
+      "Во втором семестре — сервер API, через который приложение получает и изменяет все данные, перепланирование, Pomodoro, несколько планов, поиск, уведомления и графики, затем тесты и сборки для Android и iPhone. " +
+      "Итог: «Маршрут» превращает хаотичное самообучение в понятный план по дням, а данные хранит на собственном сервере без облачных сервисов. Спасибо за внимание, готов ответить на вопросы.");
   }
   const file = path.join(OUT, "Маршрут_защита_концепции.pptx");
   await pres.writeFile({ fileName: file });
