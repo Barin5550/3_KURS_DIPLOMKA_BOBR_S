@@ -2,6 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:marshrut/data/db/app_database.dart';
 import 'package:marshrut/data/repositories/plan_repository_impl.dart';
 import 'package:marshrut/domain/entities/schedule_settings.dart';
@@ -42,9 +44,18 @@ void main() {
     return user.id;
   }
 
-  Future<void> start(WidgetTester tester, {int done = 0}) async {
+  Future<void> start(
+    WidgetTester tester, {
+    int done = 0,
+    http.Client? httpClient,
+  }) async {
     final userId = await tester.runAsync(() => seed(done: done));
-    await pumpTestApp(tester, db: db, prefs: {'current_user_id': userId!});
+    await pumpTestApp(
+      tester,
+      db: db,
+      prefs: {'current_user_id': userId!},
+      httpClient: httpClient,
+    );
     await tester.pump(const Duration(milliseconds: 1600));
     await settle(tester);
   }
@@ -229,6 +240,34 @@ void main() {
     expect(find.text('Старт'), findsOneWidget);
     await tap(tester, find.text('Сброс'));
     expect(find.text('25:00'), findsOneWidget);
+    await finish(tester);
+  });
+
+  testWidgets('сервер выключился: действие показывает ошибку, после '
+      'включения всё работает', (tester) async {
+    // Связь с сервером, которую тест может «выключить».
+    var online = true;
+    final server = inMemoryHandler(testServer(db));
+    final client = MockClient((request) async {
+      if (!online) throw http.ClientException('Connection refused');
+      return server(request);
+    });
+    await start(tester, httpClient: client);
+    expect(find.byType(Checkbox), findsWidgets);
+
+    // Сервер выключен: отметка не сохраняется, видна причина.
+    online = false;
+    await tap(tester, find.byType(Checkbox).first);
+    expect(find.textContaining('Нет связи с сервером'), findsOneWidget);
+    final plans = PlanRepositoryImpl(db);
+    var sessions = await tester.runAsync(() => plans.sessions(planId));
+    expect(sessions!.where((s) => s.isDone), isEmpty);
+
+    // Сервер снова работает: отметка сохраняется.
+    online = true;
+    await tap(tester, find.byType(Checkbox).first);
+    sessions = await tester.runAsync(() => plans.sessions(planId));
+    expect(sessions!.where((s) => s.isDone), hasLength(1));
     await finish(tester);
   });
 }

@@ -1,20 +1,29 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:marshrut/app.dart';
+import 'package:marshrut/core/utils/password_hasher.dart';
+import 'package:marshrut/data/datasources/catalog_repository_impl.dart';
 import 'package:marshrut/data/db/app_database.dart';
 import 'package:marshrut/data/services/reminder_service_impl.dart';
 import 'package:marshrut/presentation/providers/providers.dart';
+import 'package:marshrut/server/api_server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shelf/shelf_io.dart' as shelf_io;
 
 /// Интеграционный тест: настоящее приложение на устройстве или эмуляторе.
 ///
 /// Запуск: `flutter test integration_test` (нужен подключённый девайс,
-/// эмулятор или настольная платформа). База — SQLite в памяти, чтобы не
-/// трогать данные пользователя.
+/// эмулятор или настольная платформа). Прямо в тесте запускается настоящий
+/// сервер API на адресе 127.0.0.1 со своей базой SQLite в памяти, и
+/// приложение ходит к нему по HTTP — так же, как к серверу на ноутбуке.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -57,14 +66,36 @@ void main() {
     tester,
   ) async {
     await initializeDateFormatting('ru');
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+
+    // Сервер API: база в памяти, каталог из ресурсов приложения, свободный
+    // порт на 127.0.0.1 (порт 0 — «выбери любой свободный»).
     final db = AppDatabase(NativeDatabase.memory());
+    final catalog = [
+      for (final path in CatalogRepositoryImpl.files)
+        jsonDecode(await rootBundle.loadString(path)),
+    ];
+    final api = ApiServer(
+      db: db,
+      catalog: catalog,
+      // Меньше итераций PBKDF2, чтобы тест не ждал хэширование.
+      hasher: PasswordHasher(iterations: 1000),
+    );
+    final server = await shelf_io.serve(
+      api.handler,
+      InternetAddress.loopbackIPv4,
+      0,
+    );
+
+    // Приложение сразу знает адрес тестового сервера.
+    SharedPreferences.setMockInitialValues({
+      'server_url': 'http://127.0.0.1:${server.port}',
+    });
+    final prefs = await SharedPreferences.getInstance();
 
     await tester.pumpWidget(
       ProviderScope(
+        retry: noAutoRetry,
         overrides: [
-          databaseProvider.overrideWithValue(db),
           sharedPreferencesProvider.overrideWithValue(prefs),
           reminderServiceProvider.overrideWithValue(NoopReminderService()),
           // Фиксированный понедельник: в учебный день на главной есть занятия.
@@ -87,8 +118,8 @@ void main() {
     await tester.enterText(find.byKey(const Key('reg_confirm')), 'demo2026');
     await tap(tester, find.byKey(const Key('reg_submit')));
 
-    // Вход. Регистрация считает хэш PBKDF2 в фоновом изоляте, поэтому ждём
-    // именно экран входа, а не текст email (он есть и в форме регистрации).
+    // Вход. Регистрация идёт через сервер, поэтому ждём именно экран
+    // входа, а не текст email (он есть и в форме регистрации).
     await waitFor(tester, find.byKey(const Key('login_password')));
     expect(find.text('demo@mail.ru'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('login_password')), 'demo2026');
@@ -115,9 +146,11 @@ void main() {
     await tap(tester, find.text('Выйти').last);
     await waitFor(tester, find.text('С возвращением!'));
 
-    // Убираем дерево виджетов, чтобы закрыть подписки на базу.
+    // Убираем дерево виджетов, чтобы закрыть подписки, и останавливаем
+    // сервер.
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(milliseconds: 300));
+    await server.close(force: true);
     await db.close();
   });
 }

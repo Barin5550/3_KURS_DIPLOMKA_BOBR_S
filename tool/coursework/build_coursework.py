@@ -17,6 +17,7 @@
 """
 
 import argparse
+import json
 import os
 import re
 import shutil
@@ -27,10 +28,13 @@ from PIL import Image, ImageChops
 from docx import Document
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_COLOR_INDEX
+from docx.enum.text import (
+    WD_ALIGN_PARAGRAPH, WD_BREAK, WD_COLOR_INDEX, WD_TAB_ALIGNMENT, WD_TAB_LEADER,
+)
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
+from docx.text.paragraph import Paragraph
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SRC = os.path.join(ROOT, "docs", "coursework")
@@ -50,6 +54,8 @@ PARTS = [
 
 # Приложения: буква (ГОСТ 2.105 пропускает Ё, З, Й, О, Ч, Ъ, Ы, Ь), название,
 # файл и строка, с которой начинать листинг (None — с начала файла).
+# Необязательные пятый и шестой элементы: строка, перед которой листинг
+# заканчивается (фрагмент класса), и файл Markdown с текстом перед листингом.
 APPENDICES = [
     ("А", "Топологическая сортировка тем (алгоритм Кана)", "lib/domain/planner/topological_sort.dart", None),
     ("Б", "Хэширование паролей PBKDF2-HMAC-SHA256", "lib/core/utils/password_hasher.dart", None),
@@ -59,9 +65,24 @@ APPENDICES = [
     ("Е", "Таблицы базы данных", "lib/data/db/app_database.dart", None),
     ("Ж", "Правило доступа к экранам и маршруты", "lib/core/router/app_router.dart", "/// Маршруты, доступные без входа"),
     ("И", "Модульные тесты топологической сортировки", "test/domain/topological_sort_test.dart", None),
+    ("К", "Сервер API: адреса, маршруты, проверка токена и обработка ошибок", "lib/server/api_server.dart",
+     "/// Сервер API: маршруты (какой адрес что делает)",
+     "  // ---------------------------------------------------------------------\n  // Служебные адреса",
+     "docs/coursework/appendix_api.md"),
+    ("Л", "Клиент API в приложении", "lib/data/api/api_client.dart", "/// Ошибка, которую вернул сервер"),
 ]
 
 CHECK = "[ПРОВЕРИТЬ"
+
+# Данные для титульного листа.
+STUDENT = "Баринов Н.\u00a0В."
+GROUP = "ПО2410"
+SUPERVISOR = "Синтиков Е.\u00a0К."
+COLLEGE = "Колледж Astana IT University"
+# На сайте колледжа (astanait.edu.kz/ru/college) ведомство не указано;
+# колледжи Казахстана относятся к Министерству просвещения.
+MINISTRY = "Министерство просвещения Республики Казахстан [ПРОВЕРИТЬ]"
+CITY_YEAR = "Астана 2026"
 
 
 # ---------------------------------------------------------------------------
@@ -70,13 +91,21 @@ CHECK = "[ПРОВЕРИТЬ"
 
 def build_appendices():
     out = []
-    for letter, title, path, start in APPENDICES:
+    for letter, title, path, start, *rest in APPENDICES:
+        end = rest[0] if rest else None
+        intro = rest[1] if len(rest) > 1 else None
         with open(os.path.join(ROOT, path), encoding="utf-8") as f:
             code = f.read()
         if start:
             code = code[code.index(start):]
+        if end:
+            # Фрагмент: листинг обрывается внутри класса, закрываем его.
+            code = code[:code.index(end)].rstrip() + "\n\n  // … обработчики запросов …\n}"
         out.append(f"# ПРИЛОЖЕНИЕ {letter}. {title.upper()}\n")
-        out.append(f"Файл `{path}`.\n")
+        if intro:
+            with open(os.path.join(ROOT, intro), encoding="utf-8") as f:
+                out.append(f.read().rstrip() + "\n")
+        out.append(f"Файл `{path}`" + (" (фрагмент)" if end else "") + ".\n")
         out.append("```dart\n" + code.rstrip() + "\n```\n")
     text = (
         "<!-- Файл создан tool/coursework/build_coursework.py из исходного кода. "
@@ -327,6 +356,9 @@ def setup_styles(doc):
         set_font(toc, FONT, 14)
         para_format(toc.paragraph_format, WD_ALIGN_PARAGRAPH.LEFT, Cm(0))
         toc.paragraph_format.left_indent = Cm(indent)
+        toc.paragraph_format.tab_stops.add_tab_stop(
+            Cm(TEXT_WIDTH_CM), WD_TAB_ALIGNMENT.RIGHT, WD_TAB_LEADER.DOTS
+        )
 
     for name in ("Hyperlink",):
         st = style(doc, name)
@@ -406,7 +438,7 @@ def cell_paragraphs(table):
 
 
 LONG_TOKEN = re.compile(r"\S{15,}")
-WORD_GAP = re.compile(r"[\s\u200b]+")
+WORD_GAP = re.compile(r"[\s\u200b]+|(?<=-)")
 
 
 def add_break_opportunities(table):
@@ -447,12 +479,14 @@ CHAR_CM = 0.22  # средняя ширина символа Times New Roman 12 
 SMALL_TABLE_ROWS = 12  # таблицы не длиннее этого переносятся на страницу целиком
 
 
-def column_widths(table):
+def column_widths(table, size=12):
     """Ширины столбцов по содержимому: узкий столбец «№», широкий для текста.
 
     pandoc делает все столбцы одинаковыми, из-за чего короткие столбцы
     занимают много места, а в текстовых слова переносятся посреди слова.
+    Возвращает ширины и признак, что самые длинные слова поместились.
     """
+    char = (CHAR_CM + 0.03) * size / 12
     rows = [[cell.text for cell in row.cells] for row in table.rows]
     count = max(len(r) for r in rows)
     prefer, minimum = [], []
@@ -464,7 +498,7 @@ def column_widths(table):
         word = max((len(w) for t in texts for w in WORD_GAP.split(t)), default=1)
         prefer.append(max(0.5 * mean + 0.5 * min(longest, 80), 2))
         # Самое длинное слово с запасом: буквы шире среднего, плюс поля ячейки.
-        minimum.append(min(word * (CHAR_CM + 0.03) + 0.6, 4.5))
+        minimum.append(min(word * char + 0.6, 4.5))
     widths = [TEXT_WIDTH_CM * p / sum(prefer) for p in prefer]
     # Столбцы уже самого длинного слова расширяем за счёт остальных.
     for _ in range(count):
@@ -483,7 +517,7 @@ def column_widths(table):
                 (TEXT_WIDTH_CM - fixed) * prefer[j] / rest_pref, minimum[j]
             )
     scale = TEXT_WIDTH_CM / sum(widths)
-    return [w * scale for w in widths]
+    return [w * scale for w in widths], sum(minimum) <= TEXT_WIDTH_CM
 
 
 def set_column_widths(table, widths):
@@ -515,13 +549,18 @@ def set_column_widths(table, widths):
 def format_tables(doc):
     for table in doc.tables:
         figure = any(has_image(p) for p in cell_paragraphs(table))
+        size = 12
         if not figure:
             add_break_opportunities(table)
-            set_column_widths(table, column_widths(table))
+            widths, fits = column_widths(table)
+            if not fits:
+                # В плотной таблице слова не помещаются в столбцы: шрифт мельче.
+                size = 10
+                widths, _ = column_widths(table, size)
+            set_column_widths(table, widths)
         # Отступ между таблицей и следующим абзацем.
         after = table._tbl.getnext()
         if after is not None and after.tag == qn("w:p"):
-            from docx.text.paragraph import Paragraph
             Paragraph(after, table._parent).paragraph_format.space_before = Pt(12)
         set_borders(table, not figure)
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -537,9 +576,9 @@ def format_tables(doc):
                         para_format(p.paragraph_format, WD_ALIGN_PARAGRAPH.LEFT, Cm(0), spacing=1.0)
                         for run in p.runs:
                             if run.style is not None and run.style.name == "Verbatim Char":
-                                set_font(run, MONO, 10)
+                                set_font(run, MONO, size - 2)
                             else:
-                                set_font(run, FONT, 12)
+                                set_font(run, FONT, size)
                             if r == 0:
                                 run.font.bold = True
                         # Небольшую таблицу не разрываем между страницами.
@@ -569,7 +608,7 @@ def format_paragraphs(doc):
             p.paragraph_format.keep_with_next = True
         elif CAPTION.match(text):
             para_format(p.paragraph_format, WD_ALIGN_PARAGRAPH.CENTER, Cm(0), after=6)
-        elif re.match(r"^Таблица \d+\.\d+ — ", text):
+        elif re.match(r"^Таблица (\d+|[А-Я])\.\d+ — ", text):
             para_format(p.paragraph_format, WD_ALIGN_PARAGRAPH.LEFT, Cm(0), before=6)
             p.paragraph_format.keep_with_next = True
         elif p.style.name == "Block Text":
@@ -624,17 +663,17 @@ def title_page(doc):
             run.font.highlight_color = WD_COLOR_INDEX.YELLOW
         return p
 
-    add("[ПРОВЕРИТЬ: название органа управления образованием]")
-    add("[ПРОВЕРИТЬ: полное название колледжа]")
+    add(MINISTRY)
+    add(COLLEGE)
     add("КУРСОВОЙ ПРОЕКТ", size=16, bold=True, before=150)
     add("по профессиональному модулю ПМ.07 «Разработка мобильных приложений»")
     add("на тему:", before=24)
     add("«Создание приложения для автоматического формирования персонального плана обучения»", bold=True)
-    add("Выполнил: студент 3 курса, группа [ПРОВЕРИТЬ]", align=WD_ALIGN_PARAGRAPH.RIGHT, before=120)
-    add("[ПРОВЕРИТЬ: фамилия и инициалы студента]", align=WD_ALIGN_PARAGRAPH.RIGHT)
-    add("Руководитель: [ПРОВЕРИТЬ: фамилия и инициалы]", align=WD_ALIGN_PARAGRAPH.RIGHT, before=12)
+    add(f"Выполнил: студент 3 курса, группа {GROUP}", align=WD_ALIGN_PARAGRAPH.RIGHT, before=120)
+    add(STUDENT, align=WD_ALIGN_PARAGRAPH.RIGHT)
+    add(f"Руководитель: {SUPERVISOR}", align=WD_ALIGN_PARAGRAPH.RIGHT, before=12)
     add("Оценка: ______________", align=WD_ALIGN_PARAGRAPH.RIGHT, before=12)
-    last = add("[ПРОВЕРИТЬ: город, год]", before=110)
+    last = add(CITY_YEAR, before=110)
     last.add_run().add_break(WD_BREAK.PAGE)
 
     p = first.insert_paragraph_before()
@@ -645,7 +684,8 @@ def title_page(doc):
     para_format(toc.paragraph_format, WD_ALIGN_PARAGRAPH.LEFT, Cm(0))
     add_field(toc.add_run(), 'TOC \\o "1-2" \\h \\z \\u')
 
-    # Word обновит содержание и номера страниц при открытии файла.
+    # Word при открытии предложит пересчитать содержание под свою вёрстку
+    # (готовые строки с номерами страниц вписывает fill_toc после PDF).
     settings = doc.settings.element
     update = OxmlElement("w:updateFields")
     update.set(qn("w:val"), "true")
@@ -668,7 +708,7 @@ def postprocess(raw, out):
 # ---------------------------------------------------------------------------
 
 UNO_SCRIPT = r'''
-import sys, time, uno
+import json, sys, time, uno
 from com.sun.star.beans import PropertyValue
 
 def prop(name, value):
@@ -706,12 +746,26 @@ doc.refresh()
 for i in range(indexes.getCount()):
     indexes.getByIndex(i).update()
 doc.storeToURL(uno.systemPathToFileUrl(sys.argv[2]), (prop("FilterName", "writer_pdf_Export"),))
+# Строки готового оглавления с номерами страниц: их вписываем в DOCX.
+lines = []
+paragraphs = doc.getText().createEnumeration()
+while paragraphs.hasMoreElements():
+    par = paragraphs.nextElement()
+    if not par.supportsService("com.sun.star.text.Paragraph"):
+        continue
+    name = par.ParaStyleName
+    if name.startswith("Contents ") and name[9:].isdigit():
+        lines.append([int(name[9:]), par.getString()])
+with open(sys.argv[3], "w", encoding="utf-8") as f:
+    json.dump(lines, f, ensure_ascii=False)
 doc.close(True)
 '''
 
 
 def export_pdf(docx, pdf):
+    """Сохраняет PDF и возвращает строки оглавления [(уровень, текст), ...]."""
     script = os.path.join(BUILD, "export_pdf.py")
+    toc = os.path.join(BUILD, "toc.json")
     with open(script, "w", encoding="utf-8") as f:
         f.write(UNO_SCRIPT)
     office = subprocess.Popen([
@@ -719,10 +773,43 @@ def export_pdf(docx, pdf):
         "--accept=socket,host=localhost,port=2002;urp;",
     ])
     try:
-        subprocess.run([sys.executable, script, docx, pdf], check=True, timeout=300)
+        subprocess.run([sys.executable, script, docx, pdf, toc], check=True, timeout=300)
     finally:
         office.terminate()
         office.wait(timeout=30)
+    with open(toc, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def fill_toc(path, lines):
+    """Вписывает в поле TOC готовые строки с номерами страниц (как в PDF).
+
+    Без этого содержание пустое, пока поле не обновят в Word, а в других
+    редакторах (LibreOffice, Google Документы, Word на телефоне) — всегда.
+    """
+    doc = Document(path)
+    first = next(
+        p for p in doc.paragraphs
+        if any((t.text or "").startswith("TOC ") for t in p._p.iter(qn("w:instrText")))
+    )
+    run = first.runs[0]._r
+    end = [c for c in run.iter(qn("w:fldChar")) if c.get(qn("w:fldCharType")) == "end"][0]
+    run.remove(end)
+    paragraph = first
+    for i, (level, text) in enumerate(lines):
+        if i > 0:
+            new = OxmlElement("w:p")
+            paragraph._p.addnext(new)
+            paragraph = Paragraph(new, first._parent)
+        paragraph.style = toc_style(doc, min(level, 3))
+        title, _, page = text.rpartition("\t")
+        paragraph.add_run(title)
+        paragraph.add_run().add_tab()
+        paragraph.add_run(page)
+    closing = OxmlElement("w:fldChar")
+    closing.set(qn("w:fldCharType"), "end")
+    paragraph.add_run()._r.append(closing)
+    doc.save(path)
 
 
 def main():
@@ -743,8 +830,10 @@ def main():
     postprocess(raw, OUT_DOCX)
     print("DOCX:", os.path.relpath(OUT_DOCX, ROOT))
     if args.pdf:
-        export_pdf(OUT_DOCX, OUT_PDF)
+        lines = export_pdf(OUT_DOCX, OUT_PDF)
         print("PDF:", os.path.relpath(OUT_PDF, ROOT))
+        fill_toc(OUT_DOCX, lines)
+        print("Содержание в DOCX:", len(lines), "строк")
 
 
 if __name__ == "__main__":

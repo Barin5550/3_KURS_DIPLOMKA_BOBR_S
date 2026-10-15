@@ -2,11 +2,17 @@
     <!-- Ежедневные напоминания (flutter_local_notifications): после перезагрузки
          устройства запланированные уведомления нужно восстановить. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Доступ в сеть: все данные приложение получает от сервера API. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- usesCleartextTraffic: сервер API на ноутбуке работает по HTTP (без
+         HTTPS) в локальной сети Wi-Fi, а Android по умолчанию такие запросы
+         запрещает. -->
     <application
         android:label="Маршрут"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"

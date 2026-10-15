@@ -4,11 +4,18 @@
 #               настоящего приложения (Linux, виртуальный экран xvfb).
 # 2. android  — релизный APK (артефакт marshrut-android-apk).
 # 3. windows  — релизная сборка для Windows (артефакт marshrut-windows).
+# 4. ios      — сборка для iPhone без подписи (артефакт marshrut-ios, файл
+#               marshrut-ios.ipa). Подпись делает Sideloadly при установке
+#               на телефон бесплатным Apple ID (docs/Установка_на_iPhone.md).
+# 5. server   — сервер API для Windows (артефакт marshrut-server-windows):
+#               программа marshrut_server.exe, библиотека SQLite, каталог тем
+#               и файл «Запустить сервер.bat» (docs/Сервер_API.md).
 #
 # Готовые файлы скачиваются на странице запуска: вкладка Actions → запуск →
 # раздел Artifacts. Когда на странице Releases публикуется новый релиз
-# (например, с тегом v1.0.0), та же сборка прикладывает APK и архив для
-# Windows к этому релизу, и их можно скачать без входа в GitHub.
+# (например, с тегом v1.1.0), та же сборка прикладывает APK, архив для
+# Windows, IPA для iPhone и архив сервера к этому релизу, и их можно
+# скачать без входа в GitHub.
 name: Сборка и тесты
 
 on:
@@ -38,7 +45,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Форматирование
-        run: dart format --output=none --set-exit-if-changed lib test integration_test tool
+        run: dart format --output=none --set-exit-if-changed lib bin test integration_test tool
       - name: Статический анализ
         run: flutter analyze
       - name: Модульные и виджет-тесты
@@ -99,19 +106,77 @@ jobs:
           path: marshrut-windows.zip
           if-no-files-found: error
 
+  ios:
+    name: Сборка для iPhone
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Сборка релизной версии без подписи
+        run: flutter build ios --release --no-codesign
+      - name: Упаковка в IPA
+        run: |
+          mkdir Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qry marshrut-ios.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marshrut-ios
+          path: marshrut-ios.ipa
+          if-no-files-found: error
+
+  server:
+    name: Сервер API для Windows
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Сборка программы-сервера
+        run: dart build cli -t bin/marshrut_server.dart -o build/server
+      - name: Каталог тем и файл запуска рядом с программой
+        shell: pwsh
+        run: |
+          Copy-Item -Recurse assets/catalog build/server/bundle/catalog
+          Copy-Item 'tool/server/Запустить сервер.bat' build/server/bundle/
+      # Папка выкладывается целиком: в скачанном архиве сразу лежат
+      # «Запустить сервер.bat» и папки bin, lib, catalog.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marshrut-server-windows
+          path: build/server/bundle/
+          if-no-files-found: error
+
   release:
     name: Файлы для релиза
     if: github.event_name == 'release'
-    needs: [android, windows]
+    needs: [android, windows, ios, server]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      # Каждый артефакт скачивается в свою папку с его именем.
       - uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
+      # Архив сервера собирается модулем zipfile Python: он помечает имена
+      # файлов как UTF-8, и Windows правильно показывает русское имя
+      # «Запустить сервер.bat».
+      - name: Архив сервера
+        run: python3 -c "import shutil; shutil.make_archive('marshrut-server-windows', 'zip', 'marshrut-server-windows')"
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            marshrut-release.apk
-            marshrut-windows.zip
+            marshrut-android-apk/marshrut-release.apk
+            marshrut-windows/marshrut-windows.zip
+            marshrut-ios/marshrut-ios.ipa
+            marshrut-server-windows.zip
