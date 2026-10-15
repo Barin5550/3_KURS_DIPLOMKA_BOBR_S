@@ -68,10 +68,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _warmUp() async {
     try {
       // Запрашиваем список направлений; провайдер запомнит результат,
-      // и следующие экраны получат его сразу.
-      await ref.read(directionsProvider.future);
+      // и следующие экраны получат его сразу. Ждём не больше 3 секунд:
+      // если сервер недоступен, заставка не должна висеть.
+      await ref
+          .read(directionsProvider.future)
+          .timeout(const Duration(seconds: 3));
     } on Object {
-      // Ошибку каталога покажет экран, который его использует.
+      // Ошибку каталога (или долгий ответ) покажет экран, который его
+      // использует.
     }
   }
 

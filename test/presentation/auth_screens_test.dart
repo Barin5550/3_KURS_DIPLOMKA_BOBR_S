@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:marshrut/data/db/app_database.dart';
 
 import '../helpers/test_app.dart';
@@ -20,8 +22,9 @@ void main() {
   Future<void> start(
     WidgetTester tester, {
     Map<String, Object> prefs = const {},
+    http.Client? httpClient,
   }) async {
-    await pumpTestApp(tester, db: db, prefs: prefs);
+    await pumpTestApp(tester, db: db, prefs: prefs, httpClient: httpClient);
     await tester.pump(const Duration(milliseconds: 1600));
     await settle(tester);
   }
@@ -104,6 +107,57 @@ void main() {
   testWidgets('сессия удалённого пользователя не даёт войти', (tester) async {
     await start(tester, prefs: {'current_user_id': 999});
     expect(find.text('С возвращением!'), findsOneWidget);
+    await finish(tester);
+  });
+
+  testWidgets('адрес сервера: проверка связи и сохранение', (tester) async {
+    await start(tester);
+    expect(find.text('Сервер: localhost:8080'), findsOneWidget);
+
+    await tap(tester, 'server_settings');
+    expect(find.text('Сервер API'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('server_url_field')),
+      ' 192.168.1.5:8080/ ',
+    );
+    await tap(tester, 'server_url_save');
+    expect(find.text('Связь с сервером есть, адрес сохранён'), findsOneWidget);
+    expect(find.text('Сервер: 192.168.1.5:8080'), findsOneWidget);
+    await finish(tester);
+  });
+
+  testWidgets('нет связи с сервером: понятная ошибка при входе и в '
+      'настройке адреса', (tester) async {
+    final offline = MockClient(
+      (_) async => throw http.ClientException('Connection refused'),
+    );
+    await start(tester, httpClient: offline);
+
+    await tester.enterText(find.byKey(const Key('login_email')), 'ira@mail.ru');
+    await tester.enterText(
+      find.byKey(const Key('login_password')),
+      'secret123',
+    );
+    await tap(tester, 'login_submit');
+    expect(
+      find.textContaining('Нет связи с сервером http://localhost:8080'),
+      findsOneWidget,
+    );
+    // Остались на экране входа.
+    expect(find.text('С возвращением!'), findsOneWidget);
+
+    // Неверный адрес не сохраняется: ошибка под полем, окно открыто.
+    await tap(tester, 'server_settings');
+    await tester.enterText(
+      find.byKey(const Key('server_url_field')),
+      '10.0.0.1:8080',
+    );
+    await tap(tester, 'server_url_save');
+    expect(find.text('Сервер API'), findsOneWidget);
+    expect(
+      find.textContaining('Нет связи с сервером http://10.0.0.1:8080'),
+      findsOneWidget,
+    );
     await finish(tester);
   });
 }

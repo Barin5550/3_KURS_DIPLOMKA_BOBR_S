@@ -34,6 +34,8 @@ Future<void> main() async {
       // Подставляем готовые настройки вместо провайдера-заглушки: так весь
       // остальной код получает их через ref.watch.
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      // Ошибку связи с сервером показываем сразу, без долгих повторов.
+      retry: noAutoRetry,
       // Корневой виджет приложения (тема, роутер, локализация).
       child: const MarshrutApp(),
     ),

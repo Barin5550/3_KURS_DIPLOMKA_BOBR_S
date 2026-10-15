@@ -94,6 +94,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        retry: noAutoRetry,
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           reminderServiceProvider.overrideWithValue(NoopReminderService()),

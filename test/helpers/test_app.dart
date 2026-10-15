@@ -83,12 +83,14 @@ http.Client inMemoryClient(ApiServer server) => MockClient((request) async {
 ///
 /// Если в [prefs] есть `current_user_id`, а токена нет, тестовый сервер
 /// сразу выдаёт этому пользователю токен — как будто он вошёл
-/// с «Запомнить меня».
+/// с «Запомнить меня». [httpClient] заменяет связь с сервером (например,
+/// клиентом, который всегда отвечает «нет сети»).
 Future<List<Override>> testOverrides({
   AppDatabase? db,
   Map<String, Object> prefs = const {},
   DateTime Function()? clock,
   ReminderService? reminders,
+  http.Client? httpClient,
 }) async {
   await initializeDateFormatting('ru');
   final database = db ?? memoryDatabase();
@@ -106,7 +108,7 @@ Future<List<Override>> testOverrides({
   final sp = await SharedPreferences.getInstance();
   return [
     sharedPreferencesProvider.overrideWithValue(sp),
-    httpClientProvider.overrideWithValue(inMemoryClient(server)),
+    httpClientProvider.overrideWithValue(httpClient ?? inMemoryClient(server)),
     reminderServiceProvider.overrideWithValue(
       reminders ?? NoopReminderService(),
     ),
@@ -120,16 +122,26 @@ Future<void> pumpTestApp(
   AppDatabase? db,
   Map<String, Object> prefs = const {},
   ReminderService? reminders,
+  http.Client? httpClient,
   Size size = phoneSize,
 }) async {
   tester.view.devicePixelRatio = 2.75;
   tester.view.physicalSize = size * 2.75;
   addTearDown(tester.view.reset);
   final base = await tester.runAsync(
-    () => testOverrides(db: db, prefs: prefs, reminders: reminders),
+    () => testOverrides(
+      db: db,
+      prefs: prefs,
+      reminders: reminders,
+      httpClient: httpClient,
+    ),
   );
   await tester.pumpWidget(
-    ProviderScope(overrides: base!, child: const MarshrutApp()),
+    ProviderScope(
+      overrides: base!,
+      retry: noAutoRetry,
+      child: const MarshrutApp(),
+    ),
   );
 }
 
@@ -143,6 +155,7 @@ Future<void> pumpScreen(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [...base!, ...overrides],
+      retry: noAutoRetry,
       child: MaterialApp(home: screen),
     ),
   );
