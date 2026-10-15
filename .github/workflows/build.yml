@@ -4,11 +4,15 @@
 #               настоящего приложения (Linux, виртуальный экран xvfb).
 # 2. android  — релизный APK (артефакт marshrut-android-apk).
 # 3. windows  — релизная сборка для Windows (артефакт marshrut-windows).
+# 4. ios      — сборка для iPhone без подписи (артефакт marshrut-ios, файл
+#               marshrut-ios.ipa). Подпись делает Sideloadly при установке
+#               на телефон бесплатным Apple ID (docs/Установка_на_iPhone.md).
 #
 # Готовые файлы скачиваются на странице запуска: вкладка Actions → запуск →
 # раздел Artifacts. Когда на странице Releases публикуется новый релиз
-# (например, с тегом v1.0.0), та же сборка прикладывает APK и архив для
-# Windows к этому релизу, и их можно скачать без входа в GitHub.
+# (например, с тегом v1.0.0), та же сборка прикладывает APK, архив для
+# Windows и IPA для iPhone к этому релизу, и их можно скачать без входа
+# в GitHub.
 name: Сборка и тесты
 
 on:
@@ -99,10 +103,35 @@ jobs:
           path: marshrut-windows.zip
           if-no-files-found: error
 
+  ios:
+    name: Сборка для iPhone
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: Сборка релизной версии без подписи
+        run: flutter build ios --release --no-codesign
+      - name: Упаковка в IPA
+        run: |
+          mkdir Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qry marshrut-ios.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marshrut-ios
+          path: marshrut-ios.ipa
+          if-no-files-found: error
+
   release:
     name: Файлы для релиза
     if: github.event_name == 'release'
-    needs: [android, windows]
+    needs: [android, windows, ios]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -115,3 +144,4 @@ jobs:
           files: |
             marshrut-release.apk
             marshrut-windows.zip
+            marshrut-ios.ipa
