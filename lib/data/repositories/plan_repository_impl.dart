@@ -1,8 +1,8 @@
 // Репозиторий учебных планов (слой data).
 // Реализует интерфейс PlanRepository из слоя domain: сохраняет планы, темы
 // плана и занятия в таблицах plans, plan_topics и sessions базы SQLite
-// (через drift). Создаётся в planRepositoryProvider, используется PlanService
-// (domain/usecases/plan_service.dart) и провайдерами экранов планов.
+// (через drift). Используется сервером API (lib/server/api_server.dart);
+// приложение работает с планами через lib/data/api/api_plan_repository.dart.
 
 import 'package:drift/drift.dart';
 

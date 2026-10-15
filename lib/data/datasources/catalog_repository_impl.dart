@@ -1,7 +1,9 @@
 // Реализация CatalogRepository (слой data, папка datasources).
 // Читает каталог направлений (Flutter, Python, английский, алгоритмы) из
 // JSON-файлов в assets/catalog и превращает их в объекты Direction.
-// Создаётся в catalogRepositoryProvider (presentation/providers).
+// Список файлов (files) использует сервер API (bin/marshrut_server.dart),
+// а сам класс — тесты каталога. Приложение получает каталог с сервера
+// (lib/data/api/api_catalog_repository.dart).
 
 import 'dart:convert';
 

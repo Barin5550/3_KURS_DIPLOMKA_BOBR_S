@@ -1,8 +1,9 @@
 // Репозиторий пользователей: регистрация, вход, профиль (слой data).
 // Реализует интерфейс AuthRepository из слоя domain. Пользователи хранятся
-// в таблице users локальной базы SQLite (через drift), пароли — только
+// в таблице users базы SQLite на сервере (через drift), пароли — только
 // в виде хэша с солью (core/utils/password_hasher.dart).
-// Создаётся в authRepositoryProvider, вызывается из AuthController.
+// Используется сервером API (lib/server/api_server.dart); приложение
+// работает с пользователями через lib/data/api/api_auth_repository.dart.
 
 import 'package:drift/drift.dart';
 

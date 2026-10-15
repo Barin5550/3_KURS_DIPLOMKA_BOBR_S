@@ -1,8 +1,8 @@
 // Репозиторий своих тем пользователя и избранного (слой data).
 // Реализует интерфейс TopicRepository из слоя domain и хранит данные в
-// таблицах custom_topics и favorites локальной базы SQLite (через drift).
-// Создаётся в topicRepositoryProvider (presentation/providers/providers.dart),
-// используется каталогом тем, карточкой темы и экраном создания своей темы.
+// таблицах custom_topics и favorites базы SQLite на сервере (через drift).
+// Используется сервером API (lib/server/api_server.dart); приложение
+// работает со своими темами через lib/data/api/api_topic_repository.dart.
 
 import 'package:drift/drift.dart';
 

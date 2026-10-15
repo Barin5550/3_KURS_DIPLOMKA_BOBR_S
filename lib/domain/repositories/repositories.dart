@@ -41,14 +41,16 @@ class ConnectionException extends AppException {
 /// Каталог направлений обучения (готовые графы тем).
 ///
 /// `abstract interface class` — интерфейс: только список методов без кода.
-/// Реализация — CatalogRepositoryImpl (читает JSON-файлы из assets).
+/// Реализации — ApiCatalogRepository (в приложении, GET /api/directions)
+/// и CatalogRepositoryImpl (на сервере, читает JSON-файлы каталога).
 abstract interface class CatalogRepository {
   /// Загружает все направления вместе с их темами.
   Future<List<Direction>> loadDirections();
 }
 
 /// Учётные записи: регистрация, вход, профиль, пароль, напоминания.
-/// Реализация — AuthRepositoryImpl (база данных drift).
+/// Реализации — ApiAuthRepository (в приложении) и AuthRepositoryImpl
+/// (на сервере, база данных drift).
 abstract interface class AuthRepository {
   /// Регистрирует пользователя. Бросает [AppException], если email занят.
   Future<AppUser> register({
@@ -122,7 +124,8 @@ abstract interface class SessionStorage {
 }
 
 /// Хранилище планов, тем плана и занятий.
-/// Реализация — PlanRepositoryImpl (база данных drift).
+/// Реализации — ApiPlanRepository (в приложении) и PlanRepositoryImpl
+/// (на сервере, база данных drift).
 abstract interface class PlanRepository {
   /// Поток (Stream) списка планов пользователя. Stream присылает новое
   /// значение каждый раз, когда данные в базе меняются, поэтому экран,
@@ -184,7 +187,8 @@ abstract interface class PlanRepository {
 }
 
 /// Собственные темы пользователя и избранное.
-/// Реализация — TopicRepositoryImpl (база данных drift).
+/// Реализации — ApiTopicRepository (в приложении) и TopicRepositoryImpl
+/// (на сервере, база данных drift).
 abstract interface class TopicRepository {
   /// Поток собственных тем пользователя; если указан [directionId] —
   /// только темы этого направления.
@@ -232,7 +236,8 @@ abstract interface class TopicRepository {
   Future<void> toggleFavorite(int userId, String topicId);
 }
 
-/// Заметки пользователя. Реализация — NoteRepositoryImpl (база drift).
+/// Заметки пользователя. Реализации — ApiNoteRepository (в приложении)
+/// и NoteRepositoryImpl (на сервере, база drift).
 abstract interface class NoteRepository {
   /// Поток заметок пользователя; если указан [topicId] — только заметки
   /// по этой теме.
@@ -263,7 +268,8 @@ abstract interface class NoteRepository {
 }
 
 /// Журнал завершённых интервалов Pomodoro.
-/// Реализация — PomodoroRepositoryImpl (база данных drift).
+/// Реализации — ApiPomodoroRepository (в приложении) и
+/// PomodoroRepositoryImpl (на сервере, база данных drift).
 abstract interface class PomodoroRepository {
   /// Записывает завершённый интервал длиной [minutes] минут (и название
   /// темы, если она была указана).

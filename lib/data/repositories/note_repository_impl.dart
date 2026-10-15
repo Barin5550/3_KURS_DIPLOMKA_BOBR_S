@@ -1,9 +1,8 @@
 // Репозитории заметок и «помидоров» (слой data).
 // Реализуют интерфейсы NoteRepository и PomodoroRepository из слоя domain
-// и хранят данные в локальной базе SQLite через библиотеку drift.
-// Создаются в noteRepositoryProvider и pomodoroRepositoryProvider
-// (presentation/providers/providers.dart), используются экранами заметок
-// и таймера Pomodoro.
+// и хранят данные в базе SQLite на сервере через библиотеку drift.
+// Используются сервером API (lib/server/api_server.dart); приложение
+// работает с заметками через lib/data/api/api_note_repository.dart.
 
 import 'package:drift/drift.dart';
 

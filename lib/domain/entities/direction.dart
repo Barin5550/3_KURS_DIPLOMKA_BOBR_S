@@ -1,7 +1,8 @@
 // Файл direction.dart — сущность «направление обучения» (Direction).
 // Слой: domain. Направления с темами хранятся в JSON-файлах
-// assets/catalog/*.json; CatalogRepositoryImpl (data/datasources) читает их
-// через Direction.fromJson. Используются в онбординге, темах и плане.
+// assets/catalog/*.json. Сервер читает их (CatalogRepositoryImpl) и отдаёт
+// приложению, а приложение разбирает ответ (ApiCatalogRepository) — обе
+// стороны через Direction.fromJson. Используются в онбординге, темах и плане.
 import 'topic.dart';
 
 /// Направление обучения (например, «Flutter-разработчик») — граф тем.
