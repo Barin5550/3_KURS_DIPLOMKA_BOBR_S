@@ -17,6 +17,10 @@
 - **Android:** файл `marshrut-release.apk` на странице [Releases](https://github.com/Barin5550/3_KURS_DIPLOMKA_BOBR_S/releases).
   Откройте его на телефоне и разрешите установку из этого источника.
 - **Windows:** архив `marshrut-windows.zip` там же. Распакуйте и запустите `marshrut.exe`.
+- **iPhone:** файл `marshrut-ios.ipa` (артефакт `marshrut-ios` во вкладке Actions или файл релиза).
+  Он ставится с компьютера на Windows бесплатной программой Sideloadly под вашим Apple ID;
+  пошагово: [Установка_на_iPhone.md](docs/Установка_на_iPhone.md)
+  ([PDF](docs/Установка_на_iPhone.pdf)). Бесплатная подпись действует 7 дней, потом установку повторяют.
 
 Свежие сборки после каждого изменения лежат во вкладке
 [Actions](https://github.com/Barin5550/3_KURS_DIPLOMKA_BOBR_S/actions) → последний запуск → Artifacts
@@ -130,7 +134,8 @@ flutter test integration_test -d linux   # или -d windows, или на уст
 
 GitHub Actions ([.github/workflows/build.yml](.github/workflows/build.yml)) при каждой отправке кода
 проверяет форматирование, запускает анализатор, все тесты и интеграционный тест в Linux,
-затем собирает релизный APK и версию для Windows. Когда на странице Releases публикуется
+затем собирает релизный APK, версию для Windows и IPA для iPhone (на macOS, без подписи).
+Когда на странице Releases публикуется
 новый релиз, файлы сборки прикладываются к нему автоматически.
 
 ## Скриншоты

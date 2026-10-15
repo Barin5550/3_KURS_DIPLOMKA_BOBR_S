@@ -1,5 +1,5 @@
 """Сборка памяток к защите (DOCX и PDF) из Markdown-файлов в docs/:
-«Как устроено приложение» и «Путеводитель по коду».
+«Как устроено приложение», «Путеводитель по коду» и «Установка на iPhone».
 
 Оформление то же, что у курсовой (tool/coursework/build_coursework.py).
 
@@ -15,12 +15,14 @@ import subprocess
 import sys
 
 from docx import Document
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.shared import Cm
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_coursework as bc  # noqa: E402
 
-NAMES = ["Как_устроено_приложение", "Путеводитель_по_коду"]
+NAMES = ["Как_устроено_приложение", "Путеводитель_по_коду", "Установка_на_iPhone"]
 
 
 def postprocess(raw, out):
@@ -34,7 +36,28 @@ def postprocess(raw, out):
             bc.para_format(p.paragraph_format, bc.WD_ALIGN_PARAGRAPH.LEFT, Cm(0), before=6)
             p.paragraph_format.keep_with_next = True
     bc.format_tables(doc)
+    mark_links(doc)
     doc.save(out)
+
+
+def mark_links(doc):
+    """Ссылки синие и подчёркнутые, чтобы их было видно в DOCX и PDF."""
+    for link in doc.element.body.iter(qn("w:hyperlink")):
+        for run in link.iter(qn("w:r")):
+            rpr = run.find(qn("w:rPr"))
+            if rpr is None:
+                rpr = OxmlElement("w:rPr")
+                run.insert(0, rpr)
+            for tag in ("w:color", "w:u"):
+                old = rpr.find(qn(tag))
+                if old is not None:
+                    rpr.remove(old)
+            color = OxmlElement("w:color")
+            color.set(qn("w:val"), "1F4E9F")
+            underline = OxmlElement("w:u")
+            underline.set(qn("w:val"), "single")
+            rpr.append(color)
+            rpr.append(underline)
 
 
 def main():
