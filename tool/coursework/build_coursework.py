@@ -54,6 +54,8 @@ PARTS = [
 
 # Приложения: буква (ГОСТ 2.105 пропускает Ё, З, Й, О, Ч, Ъ, Ы, Ь), название,
 # файл и строка, с которой начинать листинг (None — с начала файла).
+# Необязательные пятый и шестой элементы: строка, перед которой листинг
+# заканчивается (фрагмент класса), и файл Markdown с текстом перед листингом.
 APPENDICES = [
     ("А", "Топологическая сортировка тем (алгоритм Кана)", "lib/domain/planner/topological_sort.dart", None),
     ("Б", "Хэширование паролей PBKDF2-HMAC-SHA256", "lib/core/utils/password_hasher.dart", None),
@@ -63,6 +65,11 @@ APPENDICES = [
     ("Е", "Таблицы базы данных", "lib/data/db/app_database.dart", None),
     ("Ж", "Правило доступа к экранам и маршруты", "lib/core/router/app_router.dart", "/// Маршруты, доступные без входа"),
     ("И", "Модульные тесты топологической сортировки", "test/domain/topological_sort_test.dart", None),
+    ("К", "Сервер API: адреса, маршруты, проверка токена и обработка ошибок", "lib/server/api_server.dart",
+     "/// Сервер API: маршруты (какой адрес что делает)",
+     "  // ---------------------------------------------------------------------\n  // Служебные адреса",
+     "docs/coursework/appendix_api.md"),
+    ("Л", "Клиент API в приложении", "lib/data/api/api_client.dart", "/// Ошибка, которую вернул сервер"),
 ]
 
 CHECK = "[ПРОВЕРИТЬ"
@@ -84,13 +91,21 @@ CITY_YEAR = "Астана 2026"
 
 def build_appendices():
     out = []
-    for letter, title, path, start in APPENDICES:
+    for letter, title, path, start, *rest in APPENDICES:
+        end = rest[0] if rest else None
+        intro = rest[1] if len(rest) > 1 else None
         with open(os.path.join(ROOT, path), encoding="utf-8") as f:
             code = f.read()
         if start:
             code = code[code.index(start):]
+        if end:
+            # Фрагмент: листинг обрывается внутри класса, закрываем его.
+            code = code[:code.index(end)].rstrip() + "\n\n  // … обработчики запросов …\n}"
         out.append(f"# ПРИЛОЖЕНИЕ {letter}. {title.upper()}\n")
-        out.append(f"Файл `{path}`.\n")
+        if intro:
+            with open(os.path.join(ROOT, intro), encoding="utf-8") as f:
+                out.append(f.read().rstrip() + "\n")
+        out.append(f"Файл `{path}`" + (" (фрагмент)" if end else "") + ".\n")
         out.append("```dart\n" + code.rstrip() + "\n```\n")
     text = (
         "<!-- Файл создан tool/coursework/build_coursework.py из исходного кода. "
@@ -593,7 +608,7 @@ def format_paragraphs(doc):
             p.paragraph_format.keep_with_next = True
         elif CAPTION.match(text):
             para_format(p.paragraph_format, WD_ALIGN_PARAGRAPH.CENTER, Cm(0), after=6)
-        elif re.match(r"^Таблица \d+\.\d+ — ", text):
+        elif re.match(r"^Таблица (\d+|[А-Я])\.\d+ — ", text):
             para_format(p.paragraph_format, WD_ALIGN_PARAGRAPH.LEFT, Cm(0), before=6)
             p.paragraph_format.keep_with_next = True
         elif p.style.name == "Block Text":

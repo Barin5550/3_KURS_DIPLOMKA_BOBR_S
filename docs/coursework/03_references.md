@@ -2,7 +2,7 @@
 
 > Список оформлен по ГОСТ 7.1-2003 «Библиографическая запись. Библиографическое описание», электронные ресурсы описаны по ГОСТ 7.82-2001.
 > [ПРОВЕРИТЬ] Уточнить в методичке колледжа, какой стандарт требуется. Возможно, нужен ГОСТ Р 7.0.100-2018: тогда меняется только расстановка знаков, состав сведений остаётся тем же.
-> Дата обращения ко всем электронным ресурсам: 11.10.2026. Число страниц книг сверено с библиотечными каталогами и сайтами издательств.
+> Дата обращения к электронным ресурсам: 11.10.2026, к источникам о сервере API (№ 17, 31, 38, 40, 41, 44, 47) — 15.10.2026. Число страниц книг сверено с библиотечными каталогами и сайтами издательств.
 
 ## Книги и статьи
 
@@ -25,30 +25,37 @@
 14. Dart documentation [Электронный ресурс] / Google. – Режим доступа: https://dart.dev/guides (дата обращения: 11.10.2026).
 15. Drift: documentation [Электронный ресурс]. – Режим доступа: https://drift.simonbinder.eu (дата обращения: 11.10.2026).
 16. Duolingo [Электронный ресурс] : сервис для изучения языков. – Режим доступа: https://www.duolingo.com (дата обращения: 11.10.2026).
-17. Firebase documentation [Электронный ресурс] / Google. – Режим доступа: https://firebase.google.com/docs (дата обращения: 11.10.2026).
-18. fl_chart [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/fl_chart (дата обращения: 11.10.2026).
-19. Build and release an Android app [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/deployment/android (дата обращения: 11.10.2026).
-20. Build and release a Windows desktop app [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/deployment/windows (дата обращения: 11.10.2026).
-21. Guide to app architecture [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/app-architecture/guide (дата обращения: 11.10.2026).
-22. Integration testing [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/testing/integration-tests (дата обращения: 11.10.2026).
-23. List of state management approaches [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/data-and-backend/state-mgmt/options (дата обращения: 11.10.2026).
-24. Supported deployment platforms [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/reference/supported-platforms (дата обращения: 11.10.2026).
-25. Testing Flutter apps [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/testing/overview (дата обращения: 11.10.2026).
-26. flutter_local_notifications [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/flutter_local_notifications (дата обращения: 11.10.2026).
-27. GitHub Actions documentation [Электронный ресурс] / GitHub. – Режим доступа: https://docs.github.com/actions (дата обращения: 11.10.2026).
-28. go_router [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/go_router (дата обращения: 11.10.2026).
-29. Hive [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/hive (дата обращения: 11.10.2026).
-30. Kotlin Multiplatform [Электронный ресурс] / JetBrains. – Режим доступа: https://www.jetbrains.com/kotlin-multiplatform/ (дата обращения: 11.10.2026).
-31. Material Design 3 [Электронный ресурс] / Google. – Режим доступа: https://m3.material.io (дата обращения: 11.10.2026).
-32. Notion [Электронный ресурс] : сервис заметок и задач. – Режим доступа: https://www.notion.so (дата обращения: 11.10.2026).
-33. Password Storage Cheat Sheet [Электронный ресурс] // OWASP Cheat Sheet Series. – Режим доступа: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html (дата обращения: 11.10.2026).
-34. Processes and app lifecycle [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/guide/components/activities/process-lifecycle (дата обращения: 11.10.2026).
-35. React Native [Электронный ресурс] / Meta. – Режим доступа: https://reactnative.dev (дата обращения: 11.10.2026).
-36. RFC 8018. PKCS #5: Password-Based Cryptography Specification. Version 2.1 [Электронный ресурс] / K. Moriarty, B. Kaliski, A. Rusch. – IETF, 2017. – Режим доступа: https://www.rfc-editor.org/rfc/rfc8018 (дата обращения: 11.10.2026).
-37. Riverpod: documentation [Электронный ресурс]. – Режим доступа: https://riverpod.dev (дата обращения: 11.10.2026).
-38. roadmap.sh [Электронный ресурс] : карты изучения технологий. – Режим доступа: https://roadmap.sh (дата обращения: 11.10.2026).
-39. Sound null safety [Электронный ресурс] // Dart documentation. – Режим доступа: https://dart.dev/null-safety (дата обращения: 11.10.2026).
-40. Stepik [Электронный ресурс] : образовательная платформа. – Режим доступа: https://stepik.org (дата обращения: 11.10.2026).
-41. Todoist [Электронный ресурс] : менеджер задач. – Режим доступа: https://todoist.com (дата обращения: 11.10.2026).
-42. Understanding Google Play's app account deletion requirements [Электронный ресурс] // Play Console Help. – Режим доступа: https://support.google.com/googleplay/android-developer/answer/13327111 (дата обращения: 11.10.2026).
-43. Use window size classes [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes (дата обращения: 11.10.2026).
+17. Fielding, R. T. Architectural Styles and the Design of Network-based Software Architectures [Электронный ресурс] : dissertation for the degree of Doctor of Philosophy / R. T. Fielding. – Irvine : University of California, 2000. – Режим доступа: https://ics.uci.edu/~fielding/pubs/dissertation/top.htm (дата обращения: 15.10.2026).
+18. Firebase documentation [Электронный ресурс] / Google. – Режим доступа: https://firebase.google.com/docs (дата обращения: 11.10.2026).
+19. fl_chart [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/fl_chart (дата обращения: 11.10.2026).
+20. Build and release an Android app [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/deployment/android (дата обращения: 11.10.2026).
+21. Build and release a Windows desktop app [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/deployment/windows (дата обращения: 11.10.2026).
+22. Guide to app architecture [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/app-architecture/guide (дата обращения: 11.10.2026).
+23. Integration testing [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/testing/integration-tests (дата обращения: 11.10.2026).
+24. List of state management approaches [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/data-and-backend/state-mgmt/options (дата обращения: 11.10.2026).
+25. Supported deployment platforms [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/reference/supported-platforms (дата обращения: 11.10.2026).
+26. Testing Flutter apps [Электронный ресурс] // Flutter documentation. – Режим доступа: https://docs.flutter.dev/testing/overview (дата обращения: 11.10.2026).
+27. flutter_local_notifications [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/flutter_local_notifications (дата обращения: 11.10.2026).
+28. GitHub Actions documentation [Электронный ресурс] / GitHub. – Режим доступа: https://docs.github.com/actions (дата обращения: 11.10.2026).
+29. go_router [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/go_router (дата обращения: 11.10.2026).
+30. Hive [Электронный ресурс] : пакет для Flutter // pub.dev. – Режим доступа: https://pub.dev/packages/hive (дата обращения: 11.10.2026).
+31. http [Электронный ресурс] : пакет для Dart // pub.dev. – Режим доступа: https://pub.dev/packages/http (дата обращения: 15.10.2026).
+32. Kotlin Multiplatform [Электронный ресурс] / JetBrains. – Режим доступа: https://www.jetbrains.com/kotlin-multiplatform/ (дата обращения: 11.10.2026).
+33. Material Design 3 [Электронный ресурс] / Google. – Режим доступа: https://m3.material.io (дата обращения: 11.10.2026).
+34. Notion [Электронный ресурс] : сервис заметок и задач. – Режим доступа: https://www.notion.so (дата обращения: 11.10.2026).
+35. Password Storage Cheat Sheet [Электронный ресурс] // OWASP Cheat Sheet Series. – Режим доступа: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html (дата обращения: 11.10.2026).
+36. Processes and app lifecycle [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/guide/components/activities/process-lifecycle (дата обращения: 11.10.2026).
+37. React Native [Электронный ресурс] / Meta. – Режим доступа: https://reactnative.dev (дата обращения: 11.10.2026).
+38. RFC 6750. The OAuth 2.0 Authorization Framework: Bearer Token Usage [Электронный ресурс] / M. Jones, D. Hardt. – IETF, 2012. – Режим доступа: https://www.rfc-editor.org/rfc/rfc6750 (дата обращения: 15.10.2026).
+39. RFC 8018. PKCS #5: Password-Based Cryptography Specification. Version 2.1 [Электронный ресурс] / K. Moriarty, B. Kaliski, A. Rusch. – IETF, 2017. – Режим доступа: https://www.rfc-editor.org/rfc/rfc8018 (дата обращения: 11.10.2026).
+40. RFC 8259. The JavaScript Object Notation (JSON) Data Interchange Format [Электронный ресурс] / T. Bray. – IETF, 2017. – Режим доступа: https://www.rfc-editor.org/rfc/rfc8259 (дата обращения: 15.10.2026).
+41. RFC 9110. HTTP Semantics [Электронный ресурс] / R. Fielding, M. Nottingham, J. Reschke. – IETF, 2022. – Режим доступа: https://www.rfc-editor.org/rfc/rfc9110 (дата обращения: 15.10.2026).
+42. Riverpod: documentation [Электронный ресурс]. – Режим доступа: https://riverpod.dev (дата обращения: 11.10.2026).
+43. roadmap.sh [Электронный ресурс] : карты изучения технологий. – Режим доступа: https://roadmap.sh (дата обращения: 11.10.2026).
+44. shelf [Электронный ресурс] : пакет для Dart // pub.dev. – Режим доступа: https://pub.dev/packages/shelf (дата обращения: 15.10.2026).
+45. Sound null safety [Электронный ресурс] // Dart documentation. – Режим доступа: https://dart.dev/null-safety (дата обращения: 11.10.2026).
+46. Stepik [Электронный ресурс] : образовательная платформа. – Режим доступа: https://stepik.org (дата обращения: 11.10.2026).
+47. Supabase documentation [Электронный ресурс] / Supabase. – Режим доступа: https://supabase.com/docs (дата обращения: 15.10.2026).
+48. Todoist [Электронный ресурс] : менеджер задач. – Режим доступа: https://todoist.com (дата обращения: 11.10.2026).
+49. Understanding Google Play's app account deletion requirements [Электронный ресурс] // Play Console Help. – Режим доступа: https://support.google.com/googleplay/android-developer/answer/13327111 (дата обращения: 11.10.2026).
+50. Use window size classes [Электронный ресурс] // Android Developers. – Режим доступа: https://developer.android.com/develop/ui/compose/layouts/adaptive/window-size-classes (дата обращения: 11.10.2026).
