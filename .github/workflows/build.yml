@@ -145,16 +145,17 @@ jobs:
       - run: flutter pub get
       - name: Сборка программы-сервера
         run: dart build cli -t bin/marshrut_server.dart -o build/server
-      - name: Каталог тем, файл запуска и архив
+      - name: Каталог тем и файл запуска рядом с программой
         shell: pwsh
         run: |
           Copy-Item -Recurse assets/catalog build/server/bundle/catalog
           Copy-Item 'tool/server/Запустить сервер.bat' build/server/bundle/
-          Compress-Archive -Path build/server/bundle/* -DestinationPath marshrut-server-windows.zip
+      # Папка выкладывается целиком: в скачанном архиве сразу лежат
+      # «Запустить сервер.bat» и папки bin, lib, catalog.
       - uses: actions/upload-artifact@v4
         with:
           name: marshrut-server-windows
-          path: marshrut-server-windows.zip
+          path: build/server/bundle/
           if-no-files-found: error
 
   release:
@@ -165,13 +166,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Каждый артефакт скачивается в свою папку с его именем.
       - uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
+      # Архив сервера собирается модулем zipfile Python: он помечает имена
+      # файлов как UTF-8, и Windows правильно показывает русское имя
+      # «Запустить сервер.bat».
+      - name: Архив сервера
+        run: python3 -c "import shutil; shutil.make_archive('marshrut-server-windows', 'zip', 'marshrut-server-windows')"
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            marshrut-release.apk
-            marshrut-windows.zip
-            marshrut-ios.ipa
+            marshrut-android-apk/marshrut-release.apk
+            marshrut-windows/marshrut-windows.zip
+            marshrut-ios/marshrut-ios.ipa
             marshrut-server-windows.zip
