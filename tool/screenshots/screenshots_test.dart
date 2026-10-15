@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:marshrut/app.dart';
+import 'package:marshrut/presentation/providers/providers.dart';
 
 import '../../test/helpers/test_app.dart';
 import 'screenshot_support.dart';
@@ -46,7 +47,11 @@ void main() {
     await tester.pumpWidget(
       RepaintBoundary(
         key: _boundary,
-        child: ProviderScope(overrides: overrides!, child: const MarshrutApp()),
+        child: ProviderScope(
+          overrides: overrides!,
+          retry: noAutoRetry,
+          child: const MarshrutApp(),
+        ),
       ),
     );
 
@@ -93,6 +98,14 @@ void main() {
     await settle(tester);
 
     await shot('02_login');
+    // Окно адреса сервера API (кнопка «Сервер: …» под формой входа).
+    await tap(find.byKey(const Key('server_settings')));
+    await tester.enterText(
+      find.byKey(const Key('server_url_field')),
+      'http://192.168.1.5:8080',
+    );
+    await shot('26_server_address');
+    await tap(find.text('Отмена'));
     await tap(find.byKey(const Key('go_register')));
     await tap(find.byKey(const Key('reg_submit')));
     await shot('03_register_validation');
