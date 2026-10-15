@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/formatters.dart';
+import '../../../domain/repositories/repositories.dart';
 import '../../providers/providers.dart';
 import '../../widgets/common.dart';
 import 'delete_account_dialog.dart';
@@ -374,9 +375,16 @@ class ProfileScreen extends ConsumerWidget {
     required int minute,
   }) async {
     // Сохраняем настройку; контроллер вернёт false, если разрешения нет.
-    final ok = await ref
-        .read(authControllerProvider.notifier)
-        .setReminder(enabled: enabled, hour: hour, minute: minute);
+    final bool ok;
+    try {
+      ok = await ref
+          .read(authControllerProvider.notifier)
+          .setReminder(enabled: enabled, hour: hour, minute: minute);
+    } on AppException catch (e) {
+      // Сервер не сохранил настройку (например, нет связи).
+      if (context.mounted) showSnack(context, 'Ошибка: $e', error: true);
+      return;
+    }
     // Если экран уже закрыт, сообщение показывать некуда.
     if (!context.mounted) return;
     if (!ok) {

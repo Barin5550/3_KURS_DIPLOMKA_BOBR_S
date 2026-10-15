@@ -152,10 +152,13 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen> {
     );
     // Отказался или экран уже закрыт — ничего не делаем.
     if (!ok || !mounted) return;
-    // Удаляем заметку из базы.
-    await ref.read(noteRepositoryProvider).deleteNote(widget.noteId!);
+    // Удаляем заметку на сервере; при ошибке runAction покажет причину.
+    final deleted = await runAction(
+      context,
+      () => ref.read(noteRepositoryProvider).deleteNote(widget.noteId!),
+    );
     // Закрываем редактор и сообщаем об удалении.
-    if (mounted) {
+    if (deleted && mounted) {
       context.pop();
       showSnack(context, 'Заметка удалена');
     }

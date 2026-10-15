@@ -455,6 +455,25 @@ void showSnack(BuildContext context, String message, {bool error = false}) {
     );
 }
 
+/// Выполняет действие с данными [action] (запрос к серверу API). Если оно
+/// не удалось — например, сервер выключен или ответил ошибкой, — показывает
+/// красное сообщение с причиной («Нет связи с сервером …»).
+///
+/// Возвращает `true`, если действие выполнено, и `false` при ошибке.
+Future<bool> runAction(
+  BuildContext context,
+  Future<void> Function() action,
+) async {
+  try {
+    await action();
+    return true;
+  } on Object catch (e) {
+    // Экран мог закрыться, пока шёл запрос, — тогда сообщение не нужно.
+    if (context.mounted) showSnack(context, 'Ошибка: $e', error: true);
+    return false;
+  }
+}
+
 /// Показывает диалог подтверждения с кнопками «Отмена» и [confirmLabel].
 ///
 /// Возвращает `true`, если пользователь подтвердил действие, и `false`,

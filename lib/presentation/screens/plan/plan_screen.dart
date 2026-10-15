@@ -291,8 +291,12 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                           child: SessionTile(
                             session: s,
                             today: today,
-                            onToggle: () =>
-                                ref.read(planServiceProvider).toggleSession(s),
+                            onToggle: () => runAction(
+                              context,
+                              () => ref
+                                  .read(planServiceProvider)
+                                  .toggleSession(s),
+                            ),
                             onTap: () => context.push('/session/${s.id}'),
                           ),
                         ),

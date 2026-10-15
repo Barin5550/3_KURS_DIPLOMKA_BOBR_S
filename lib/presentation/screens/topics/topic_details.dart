@@ -57,11 +57,15 @@ class TopicDetails extends ConsumerWidget {
                 // id вошедшего пользователя (null, если никто не вошёл).
                 final userId = ref.read(currentUserIdProvider);
                 // Добавляем тему в избранное или убираем её оттуда
-                // через репозиторий тем (запись в базе данных).
+                // через репозиторий тем (запрос к серверу; ошибку покажет
+                // runAction).
                 if (userId != null) {
-                  ref
-                      .read(topicRepositoryProvider)
-                      .toggleFavorite(userId, topic.id);
+                  runAction(
+                    context,
+                    () => ref
+                        .read(topicRepositoryProvider)
+                        .toggleFavorite(userId, topic.id),
+                  );
                 }
               },
             ),

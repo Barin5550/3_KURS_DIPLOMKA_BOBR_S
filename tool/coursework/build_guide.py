@@ -1,5 +1,6 @@
 """Сборка памяток к защите (DOCX и PDF) из Markdown-файлов в docs/:
-«Как устроено приложение», «Путеводитель по коду» и «Установка на iPhone».
+«Как устроено приложение», «Путеводитель по коду», «Установка на iPhone»
+и «Сервер API».
 
 Оформление то же, что у курсовой (tool/coursework/build_coursework.py).
 
@@ -22,7 +23,12 @@ from docx.shared import Cm
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_coursework as bc  # noqa: E402
 
-NAMES = ["Как_устроено_приложение", "Путеводитель_по_коду", "Установка_на_iPhone"]
+NAMES = [
+    "Как_устроено_приложение",
+    "Путеводитель_по_коду",
+    "Установка_на_iPhone",
+    "Сервер_API",
+]
 
 
 def postprocess(raw, out):

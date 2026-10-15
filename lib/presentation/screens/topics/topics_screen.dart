@@ -245,9 +245,12 @@ class _TopicsScreenState extends ConsumerState<TopicsScreen> {
                 onFavorite: () {
                   final userId = ref.read(currentUserIdProvider);
                   if (userId != null) {
-                    ref
-                        .read(topicRepositoryProvider)
-                        .toggleFavorite(userId, t.id);
+                    runAction(
+                      context,
+                      () => ref
+                          .read(topicRepositoryProvider)
+                          .toggleFavorite(userId, t.id),
+                    );
                   }
                 },
                 // Нажатие на карточку открывает экран темы.

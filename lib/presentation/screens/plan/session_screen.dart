@@ -163,11 +163,15 @@ class _SessionBody extends ConsumerWidget {
             session.isDone ? 'Отменить отметку' : 'Отметить выполненным',
           ),
           onPressed: () async {
-            // Переключаем отметку в базе через PlanService.
-            await ref.read(planServiceProvider).toggleSession(session);
+            // Переключаем отметку на сервере через PlanService; при ошибке
+            // runAction покажет причину.
+            final ok = await runAction(
+              context,
+              () => ref.read(planServiceProvider).toggleSession(session),
+            );
             // Похвала, только если занятие было невыполненным (значит,
             // его только что отметили) и экран ещё открыт.
-            if (context.mounted && !session.isDone) {
+            if (ok && context.mounted && !session.isDone) {
               showSnack(context, 'Отлично! Занятие выполнено');
             }
           },

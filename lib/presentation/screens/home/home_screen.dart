@@ -172,9 +172,12 @@ class _HomeBody extends ConsumerWidget {
                     session: s,
                     today: today,
                     // Чекбокс: отметить занятие выполненным или снять
-                    // отметку через сервис планов.
-                    onToggle: () =>
-                        ref.read(planServiceProvider).toggleSession(s),
+                    // отметку через сервис планов (ошибку покажет
+                    // runAction).
+                    onToggle: () => runAction(
+                      context,
+                      () => ref.read(planServiceProvider).toggleSession(s),
+                    ),
                     // Нажатие на карточку открывает экран занятия.
                     onTap: () => context.push('/session/${s.id}'),
                   ),

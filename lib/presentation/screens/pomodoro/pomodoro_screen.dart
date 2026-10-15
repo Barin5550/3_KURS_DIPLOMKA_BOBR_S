@@ -148,15 +148,20 @@ class _PomodoroScreenState extends ConsumerState<PomodoroScreen> {
       // Закончился фокус. Берём id вошедшего пользователя.
       final userId = ref.read(currentUserIdProvider);
       // Если пользователь известен — сохраняем завершённый интервал
-      // (минуты и тему) в базу через репозиторий Pomodoro.
+      // (минуты и тему) на сервере через репозиторий Pomodoro. Если
+      // сервер недоступен, runAction покажет причину, а уведомление о
+      // перерыве всё равно придёт.
       if (userId != null) {
-        await ref
-            .read(pomodoroRepositoryProvider)
-            .logPomodoro(
-              userId: userId,
-              minutes: _mode.focus,
-              topicTitle: widget.topicTitle,
-            );
+        await runAction(
+          context,
+          () => ref
+              .read(pomodoroRepositoryProvider)
+              .logPomodoro(
+                userId: userId,
+                minutes: _mode.focus,
+                topicTitle: widget.topicTitle,
+              ),
+        );
       }
       // Уведомление: помидор завершён, пора отдохнуть.
       await reminders.showNow(

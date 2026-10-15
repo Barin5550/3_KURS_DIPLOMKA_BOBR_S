@@ -102,7 +102,10 @@ class _PlanCard extends ConsumerWidget {
       // отключено (null) — он и так активный.
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: plan.isActive ? null : () => _activate(context, ref),
+        // Ошибку запроса (например, нет связи) покажет runAction.
+        onTap: plan.isActive
+            ? null
+            : () => runAction(context, () => _activate(context, ref)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 4, 16),
           child: Column(

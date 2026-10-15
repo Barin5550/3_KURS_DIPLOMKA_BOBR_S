@@ -58,9 +58,10 @@ AppDatabase memoryDatabase() {
 ApiServer testServer(AppDatabase db) =>
     ApiServer(db: db, catalog: catalogJson(), hasher: fastHasher());
 
-/// HTTP-клиент, который передаёт запросы серверу [server] прямо в памяти,
-/// без сети: запрос пакета http превращается в запрос shelf и обратно.
-http.Client inMemoryClient(ApiServer server) => MockClient((request) async {
+/// Обработчик для MockClient: передаёт запрос серверу [server] прямо в
+/// памяти, без сети — запрос пакета http превращается в запрос shelf и
+/// обратно.
+MockClientHandler inMemoryHandler(ApiServer server) => (request) async {
   final response = await server.handler(
     shelf.Request(
       request.method,
@@ -76,7 +77,11 @@ http.Client inMemoryClient(ApiServer server) => MockClient((request) async {
     headers: response.headers,
     request: request,
   );
-});
+};
+
+/// HTTP-клиент, который работает с сервером [server] в памяти.
+http.Client inMemoryClient(ApiServer server) =>
+    MockClient(inMemoryHandler(server));
 
 /// Контейнер зависимостей для тестов: сервер API с базой в памяти,
 /// пустые настройки, уведомления-заглушки, фиксированное время.
