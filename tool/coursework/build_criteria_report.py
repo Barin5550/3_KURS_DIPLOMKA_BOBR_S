@@ -81,6 +81,8 @@ def postprocess(raw, out):
             bc.para_format(p.paragraph_format, bc.WD_ALIGN_PARAGRAPH.LEFT, Cm(0), before=6)
             p.paragraph_format.keep_with_next = True
     bc.format_tables(doc)
+    # Пометки [ПРОВЕРИТЬ …] — жёлтым, как в курсовой.
+    bc.highlight_checks(doc)
     doc.save(out)
 
 
