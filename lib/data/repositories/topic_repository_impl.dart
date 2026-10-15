@@ -76,6 +76,7 @@ class TopicRepositoryImpl implements TopicRepository {
   }
 
   /// Направление своей темы (для экрана карточки темы).
+  @override
   Future<String?> directionOf(String topicId) async {
     // Для темы каталога направление здесь не хранится — возвращаем null.
     final id = _parseId(topicId);

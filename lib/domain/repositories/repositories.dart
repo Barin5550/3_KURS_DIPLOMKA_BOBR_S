@@ -3,8 +3,11 @@
 // Слой domain описывает, ЧТО нужно приложению, а слой data решает, КАК это
 // хранить (drift, JSON, shared_preferences). Благодаря этому логику можно
 // тестировать с подменёнными реализациями.
-// Реализации лежат в lib/data/repositories, lib/data/datasources и
-// lib/data/services; связываются с интерфейсами в presentation/providers.
+// У каждого интерфейса данных две реализации:
+// - lib/data/api — в приложении: запросы к серверу API по HTTP;
+// - lib/data/repositories и lib/data/datasources — на сервере: база SQLite
+//   и файлы каталога.
+// Приложение связывает интерфейсы с реализациями API в presentation/providers.
 
 import '../entities/direction.dart';
 import '../entities/note.dart';
@@ -174,6 +177,10 @@ abstract interface class TopicRepository {
 
   /// Находит собственную тему по id; `null`, если не найдена.
   Future<Topic?> customTopicById(String topicId);
+
+  /// Направление собственной темы [topicId]; `null` для темы каталога или
+  /// если тема не найдена.
+  Future<String?> directionOf(String topicId);
 
   /// Создаёт собственную тему и возвращает её id (строкой).
   Future<String> createCustomTopic({

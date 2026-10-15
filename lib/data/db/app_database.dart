@@ -1,7 +1,9 @@
 // Описание базы данных SQLite через библиотеку drift (слой data, папка db).
 // drift — пакет для работы с SQLite: по таблицам, описанным классами Dart,
 // он генерирует код запросов (файл app_database.g.dart, вручную не правится).
-// Базу создаёт main.dart, а работают с ней репозитории lib/data/repositories.
+// Базу открывает сервер API (bin/marshrut_server.dart), а работают с ней
+// репозитории lib/data/repositories. Приложение к базе напрямую не обращается:
+// все данные оно получает от сервера через API.
 
 import 'package:drift/drift.dart';
 
@@ -268,6 +270,26 @@ class PomodoroLogs extends Table {
   DateTimeColumn get completedAt => dateTime()();
 }
 
+/// Токены входа в API. После входа сервер выдаёт приложению случайный
+/// токен, а приложение отправляет его с каждым запросом. В таблице хранится
+/// только хэш SHA-256 токена: даже по копии базы войти не получится.
+@DataClassName('ApiTokenRow')
+class ApiTokens extends Table {
+  /// Хэш SHA-256 токена (64 шестнадцатеричных символа).
+  TextColumn get tokenHash => text()();
+
+  /// Пользователь, которому выдан токен; токены удаляются вместе с ним.
+  IntColumn get userId =>
+      integer().references(Users, #id, onDelete: KeyAction.cascade)();
+
+  /// Когда токен выдан: по этой дате сервер отбрасывает старые токены.
+  DateTimeColumn get createdAt => dateTime()();
+
+  /// Первичный ключ — сам хэш токена.
+  @override
+  Set<Column> get primaryKey => {tokenHash};
+}
+
 /// База данных приложения.
 ///
 /// Аннотация `@DriftDatabase` перечисляет все таблицы; по ней drift
@@ -282,24 +304,31 @@ class PomodoroLogs extends Table {
     Notes,
     Favorites,
     PomodoroLogs,
+    ApiTokens,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   /// Принимает executor — «движок», через который drift работает с SQLite.
-  /// В приложении это файл на устройстве (создаётся в main.dart), в
-  /// тестах — база в памяти.
+  /// На сервере это файл базы на компьютере (создаётся в
+  /// bin/marshrut_server.dart), в тестах — база в памяти.
   AppDatabase(super.executor);
 
   /// Версия схемы базы. Её увеличивают при изменении таблиц, чтобы drift
   /// запустил миграцию (обновление структуры старой базы).
+  /// Версия 2 добавила таблицу токенов API.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Стратегия миграции: что делать при создании и открытии базы.
   @override
   MigrationStrategy get migration => MigrationStrategy(
     // При первом запуске создаём все таблицы.
     onCreate: (m) => m.createAll(),
+    // База старой версии: добавляем таблицы, которых в ней ещё нет.
+    onUpgrade: (m, from, to) async {
+      // В версии 1 не было таблицы токенов API.
+      if (from < 2) await m.createTable(apiTokens);
+    },
     // Выполняется перед каждым открытием базы.
     beforeOpen: (details) async {
       // Включаем проверку внешних ключей (каскадное удаление планов и занятий).

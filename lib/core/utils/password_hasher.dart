@@ -1,13 +1,13 @@
 // Файл password_hasher.dart — безопасное хранение паролей (хэширование).
 // Слой: core (утилиты). Пароль никогда не хранится в открытом виде: в базу
 // попадают только соль и хэш. Класс использует AuthRepositoryImpl
-// (data/repositories) при регистрации, входе и смене пароля; экземпляр
-// раздаёт passwordHasherProvider в presentation/providers/providers.dart.
+// (data/repositories) при регистрации, входе и смене пароля; работает он
+// на сервере API (lib/server/api_server.dart), а не в приложении.
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart' show compute;
 
 /// Хэширование паролей алгоритмом PBKDF2-HMAC-SHA256 (RFC 8018).
 ///
@@ -65,7 +65,7 @@ class PasswordHasher {
   /// [hash] в фоновом изоляте, чтобы интерфейс не замирал на время расчёта.
   ///
   /// Изолят — отдельный поток выполнения Dart со своей памятью; функция
-  /// [compute] запускает в нём вычисление и возвращает результат.
+  /// [Isolate.run] запускает в нём вычисление и возвращает результат.
   Future<String> hashAsync(String password, String salt) {
     // При малом числе итераций (например, в тестах) считаем сразу.
     if (iterations < _isolateThreshold) {
@@ -75,9 +75,8 @@ class PasswordHasher {
     // только это число, а не весь текущий объект.
     final rounds = iterations;
     // В изоляте создаём новый хэшер с тем же числом итераций и считаем хэш.
-    return compute(
-      (_) => PasswordHasher(iterations: rounds).hash(password, salt),
-      null,
+    return Isolate.run(
+      () => PasswordHasher(iterations: rounds).hash(password, salt),
     );
   }
 
@@ -92,9 +91,8 @@ class PasswordHasher {
     }
     // Долгую проверку уносим в изолят. Число итераций в конструкторе здесь
     // не важно: verify берёт его из сохранённой строки хэша.
-    return compute(
-      (_) => PasswordHasher(iterations: 1).verify(password, salt, stored),
-      null,
+    return Isolate.run(
+      () => PasswordHasher(iterations: 1).verify(password, salt, stored),
     );
   }
 

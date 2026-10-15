@@ -293,15 +293,37 @@ class $UsersTable extends Users with TableInfo<$UsersTable, UserRow> {
 }
 
 class UserRow extends DataClass implements Insertable<UserRow> {
+  /// Уникальный номер пользователя; база назначает его сама
+  /// (autoIncrement — каждая новая запись получает следующий номер).
   final int id;
+
+  /// Имя пользователя (от 2 до 40 символов).
   final String name;
+
+  /// Email — уникальный (два аккаунта с одним email создать нельзя).
   final String email;
+
+  /// Хэш пароля — результат необратимого преобразования пароля.
+  /// Сам пароль в базе не хранится.
   final String passwordHash;
+
+  /// Соль — случайная строка, которая добавляется к паролю перед
+  /// хэшированием, чтобы одинаковые пароли давали разные хэши.
   final String salt;
+
+  /// Цвет аватара, записанный числом.
   final int avatarColor;
+
+  /// Включено ли ежедневное напоминание (по умолчанию выключено).
   final bool reminderEnabled;
+
+  /// Час ежедневного напоминания (по умолчанию 19).
   final int reminderHour;
+
+  /// Минуты ежедневного напоминания (по умолчанию 0).
   final int reminderMinute;
+
+  /// Дата и время регистрации.
   final DateTime createdAt;
   const UserRow({
     required this.id,
@@ -928,20 +950,38 @@ class $PlansTable extends Plans with TableInfo<$PlansTable, PlanRow> {
 }
 
 class PlanRow extends DataClass implements Insertable<PlanRow> {
+  /// Уникальный номер плана (назначается автоматически).
   final int id;
+
+  /// Владелец плана — ссылка (внешний ключ) на таблицу Users. При удалении
+  /// пользователя его планы удаляются автоматически (каскадно).
   final int userId;
+
+  /// id направления из каталога, по которому построен план.
   final String directionId;
+
+  /// Название плана.
   final String title;
+
+  /// Сколько часов в неделю пользователь готов учиться.
   final double hoursPerWeek;
 
   /// Учебные дни через запятую: «1,3,5» (1 — понедельник).
   final String studyDays;
+
+  /// Дата начала обучения.
   final DateTime startDate;
+
+  /// Дедлайн. nullable — значение может отсутствовать (план без дедлайна).
   final DateTime? deadline;
 
   /// Темы, исключённые по тесту, через запятую.
   final String knownTopicIds;
+
+  /// Активный ли это план (по умолчанию — да).
   final bool isActive;
+
+  /// Дата и время создания плана.
   final DateTime createdAt;
   const PlanRow({
     required this.id,
@@ -1536,14 +1576,31 @@ class $PlanTopicsTable extends PlanTopics
 }
 
 class PlanTopicRow extends DataClass implements Insertable<PlanTopicRow> {
+  /// Уникальный номер записи (назначается автоматически).
   final int id;
+
+  /// План, к которому относится тема; удаляется вместе с планом.
   final int planId;
+
+  /// id темы (из каталога или собственной темы пользователя).
   final String topicId;
+
+  /// Название темы.
   final String title;
+
+  /// Категория темы.
   final String category;
+
+  /// Длительность изучения темы в минутах.
   final int minutes;
+
+  /// Уровень сложности темы (влияет на порядок при сортировке Кана).
   final int level;
+
+  /// id тем-зависимостей через запятую (пустая строка — зависимостей нет).
   final String prerequisites;
+
+  /// Позиция темы в порядке изучения.
   final int position;
   const PlanTopicRow({
     required this.id,
@@ -2153,19 +2210,40 @@ class $SessionsTable extends Sessions
 }
 
 class SessionRow extends DataClass implements Insertable<SessionRow> {
+  /// Уникальный номер занятия (назначается автоматически).
   final int id;
+
+  /// План, к которому относится занятие; удаляется вместе с планом.
   final int planId;
+
+  /// id темы занятия.
   final String topicId;
+
+  /// Название темы (копия, чтобы не искать тему при показе списка).
   final String topicTitle;
+
+  /// Категория темы.
   final String category;
+
+  /// Дата занятия.
   final DateTime date;
+
+  /// Длительность занятия в минутах.
   final int minutes;
 
   /// «study» или «review».
   final String kind;
+
+  /// Номер части темы (по умолчанию 1).
   final int part;
+
+  /// Сколько всего частей у темы (по умолчанию 1).
   final int totalParts;
+
+  /// Выполнено ли занятие (по умолчанию — нет).
   final bool isDone;
+
+  /// Когда занятие отмечено выполненным; пусто, если ещё не выполнено.
   final DateTime? completedAt;
   const SessionRow({
     required this.id,
@@ -2789,14 +2867,31 @@ class $CustomTopicsTable extends CustomTopics
 }
 
 class CustomTopicRow extends DataClass implements Insertable<CustomTopicRow> {
+  /// Уникальный номер темы (назначается автоматически).
   final int id;
+
+  /// Автор темы; темы удаляются вместе с пользователем.
   final int userId;
+
+  /// Направление, в которое пользователь добавил тему.
   final String directionId;
+
+  /// Название темы.
   final String title;
+
+  /// Описание темы (по умолчанию пустое).
   final String description;
+
+  /// Длительность изучения в минутах.
   final int minutes;
+
+  /// Категория темы.
   final String category;
+
+  /// id тем-зависимостей через запятую.
   final String prerequisites;
+
+  /// Дата и время создания темы.
   final DateTime createdAt;
   const CustomTopicRow({
     required this.id,
@@ -3311,13 +3406,28 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
 }
 
 class NoteRow extends DataClass implements Insertable<NoteRow> {
+  /// Уникальный номер заметки (назначается автоматически).
   final int id;
+
+  /// Автор заметки; заметки удаляются вместе с пользователем.
   final int userId;
+
+  /// Заголовок заметки.
   final String title;
+
+  /// Текст заметки.
   final String body;
+
+  /// id темы, к которой привязана заметка (может отсутствовать).
   final String? topicId;
+
+  /// Название этой темы (может отсутствовать).
   final String? topicTitle;
+
+  /// Когда заметка создана.
   final DateTime createdAt;
+
+  /// Когда заметку изменяли последний раз.
   final DateTime updatedAt;
   const NoteRow({
     required this.id,
@@ -3701,8 +3811,13 @@ class $FavoritesTable extends Favorites
 }
 
 class FavoriteRow extends DataClass implements Insertable<FavoriteRow> {
+  /// Пользователь; записи удаляются вместе с ним.
   final int userId;
+
+  /// id избранной темы.
   final String topicId;
+
+  /// Когда тема добавлена в избранное.
   final DateTime createdAt;
   const FavoriteRow({
     required this.userId,
@@ -4018,10 +4133,19 @@ class $PomodoroLogsTable extends PomodoroLogs
 }
 
 class PomodoroLogRow extends DataClass implements Insertable<PomodoroLogRow> {
+  /// Уникальный номер записи (назначается автоматически).
   final int id;
+
+  /// Пользователь; записи удаляются вместе с ним.
   final int userId;
+
+  /// Длительность интервала в минутах.
   final int minutes;
+
+  /// Тема, над которой шла работа (может отсутствовать).
   final String? topicTitle;
+
+  /// Когда интервал завершён.
   final DateTime completedAt;
   const PomodoroLogRow({
     required this.id,
@@ -4220,6 +4344,278 @@ class PomodoroLogsCompanion extends UpdateCompanion<PomodoroLogRow> {
   }
 }
 
+class $ApiTokensTable extends ApiTokens
+    with TableInfo<$ApiTokensTable, ApiTokenRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ApiTokensTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _tokenHashMeta = const VerificationMeta(
+    'tokenHash',
+  );
+  @override
+  late final GeneratedColumn<String> tokenHash = GeneratedColumn<String>(
+    'token_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [tokenHash, userId, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'api_tokens';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ApiTokenRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('token_hash')) {
+      context.handle(
+        _tokenHashMeta,
+        tokenHash.isAcceptableOrUnknown(data['token_hash']!, _tokenHashMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_tokenHashMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {tokenHash};
+  @override
+  ApiTokenRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ApiTokenRow(
+      tokenHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}token_hash'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ApiTokensTable createAlias(String alias) {
+    return $ApiTokensTable(attachedDatabase, alias);
+  }
+}
+
+class ApiTokenRow extends DataClass implements Insertable<ApiTokenRow> {
+  /// Хэш SHA-256 токена (64 шестнадцатеричных символа).
+  final String tokenHash;
+
+  /// Пользователь, которому выдан токен; токены удаляются вместе с ним.
+  final int userId;
+
+  /// Когда токен выдан: по этой дате сервер отбрасывает старые токены.
+  final DateTime createdAt;
+  const ApiTokenRow({
+    required this.tokenHash,
+    required this.userId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['token_hash'] = Variable<String>(tokenHash);
+    map['user_id'] = Variable<int>(userId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ApiTokensCompanion toCompanion(bool nullToAbsent) {
+    return ApiTokensCompanion(
+      tokenHash: Value(tokenHash),
+      userId: Value(userId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ApiTokenRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ApiTokenRow(
+      tokenHash: serializer.fromJson<String>(json['tokenHash']),
+      userId: serializer.fromJson<int>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'tokenHash': serializer.toJson<String>(tokenHash),
+      'userId': serializer.toJson<int>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ApiTokenRow copyWith({String? tokenHash, int? userId, DateTime? createdAt}) =>
+      ApiTokenRow(
+        tokenHash: tokenHash ?? this.tokenHash,
+        userId: userId ?? this.userId,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  ApiTokenRow copyWithCompanion(ApiTokensCompanion data) {
+    return ApiTokenRow(
+      tokenHash: data.tokenHash.present ? data.tokenHash.value : this.tokenHash,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ApiTokenRow(')
+          ..write('tokenHash: $tokenHash, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(tokenHash, userId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ApiTokenRow &&
+          other.tokenHash == this.tokenHash &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt);
+}
+
+class ApiTokensCompanion extends UpdateCompanion<ApiTokenRow> {
+  final Value<String> tokenHash;
+  final Value<int> userId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ApiTokensCompanion({
+    this.tokenHash = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ApiTokensCompanion.insert({
+    required String tokenHash,
+    required int userId,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : tokenHash = Value(tokenHash),
+       userId = Value(userId),
+       createdAt = Value(createdAt);
+  static Insertable<ApiTokenRow> custom({
+    Expression<String>? tokenHash,
+    Expression<int>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (tokenHash != null) 'token_hash': tokenHash,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ApiTokensCompanion copyWith({
+    Value<String>? tokenHash,
+    Value<int>? userId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ApiTokensCompanion(
+      tokenHash: tokenHash ?? this.tokenHash,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (tokenHash.present) {
+      map['token_hash'] = Variable<String>(tokenHash.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ApiTokensCompanion(')
+          ..write('tokenHash: $tokenHash, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4231,6 +4627,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $NotesTable notes = $NotesTable(this);
   late final $FavoritesTable favorites = $FavoritesTable(this);
   late final $PomodoroLogsTable pomodoroLogs = $PomodoroLogsTable(this);
+  late final $ApiTokensTable apiTokens = $ApiTokensTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4244,6 +4641,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     notes,
     favorites,
     pomodoroLogs,
+    apiTokens,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4295,6 +4693,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('pomodoro_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('api_tokens', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -4415,6 +4820,24 @@ final class $$UsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_pomodoroLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ApiTokensTable, List<ApiTokenRow>>
+  _apiTokensRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.apiTokens,
+    aliasName: 'users__id__api_tokens__user_id',
+  );
+
+  $$ApiTokensTableProcessedTableManager get apiTokensRefs {
+    final manager = $$ApiTokensTableTableManager(
+      $_db,
+      $_db.apiTokens,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_apiTokensRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4595,6 +5018,31 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
           }) => $$PomodoroLogsTableFilterComposer(
             $db: $db,
             $table: $db.pomodoroLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> apiTokensRefs(
+    Expression<bool> Function($$ApiTokensTableFilterComposer f) f,
+  ) {
+    final $$ApiTokensTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.apiTokens,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ApiTokensTableFilterComposer(
+            $db: $db,
+            $table: $db.apiTokens,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4838,6 +5286,31 @@ class $$UsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> apiTokensRefs<T extends Object>(
+    Expression<T> Function($$ApiTokensTableAnnotationComposer a) f,
+  ) {
+    final $$ApiTokensTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.apiTokens,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ApiTokensTableAnnotationComposer(
+            $db: $db,
+            $table: $db.apiTokens,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -4859,6 +5332,7 @@ class $$UsersTableTableManager
             bool notesRefs,
             bool favoritesRefs,
             bool pomodoroLogsRefs,
+            bool apiTokensRefs,
           })
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
@@ -4935,6 +5409,7 @@ class $$UsersTableTableManager
                 notesRefs = false,
                 favoritesRefs = false,
                 pomodoroLogsRefs = false,
+                apiTokensRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -4944,6 +5419,7 @@ class $$UsersTableTableManager
                     if (notesRefs) db.notes,
                     if (favoritesRefs) db.favorites,
                     if (pomodoroLogsRefs) db.pomodoroLogs,
+                    if (apiTokensRefs) db.apiTokens,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -5045,6 +5521,27 @@ class $$UsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (apiTokensRefs)
+                        await $_getPrefetchedData<
+                          UserRow,
+                          $UsersTable,
+                          ApiTokenRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._apiTokensRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).apiTokensRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5071,6 +5568,7 @@ typedef $$UsersTableProcessedTableManager =
         bool notesRefs,
         bool favoritesRefs,
         bool pomodoroLogsRefs,
+        bool apiTokensRefs,
       })
     >;
 typedef $$PlansTableCreateCompanionBuilder = PlansCompanion Function({
@@ -7867,6 +8365,281 @@ typedef $$PomodoroLogsTableProcessedTableManager =
       PomodoroLogRow,
       PrefetchHooks Function({bool userId})
     >;
+typedef $$ApiTokensTableCreateCompanionBuilder = ApiTokensCompanion Function({
+  required String tokenHash,
+  required int userId,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$ApiTokensTableUpdateCompanionBuilder = ApiTokensCompanion Function({
+  Value<String> tokenHash,
+  Value<int> userId,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+final class $$ApiTokensTableReferences
+    extends BaseReferences<_$AppDatabase, $ApiTokensTable, ApiTokenRow> {
+  $$ApiTokensTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _userIdTable(_$AppDatabase db) =>
+      db.users.createAlias('api_tokens__user_id__users__id');
+
+  $$UsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<int>('user_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ApiTokensTableFilterComposer
+    extends Composer<_$AppDatabase, $ApiTokensTable> {
+  $$ApiTokensTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get tokenHash => $composableBuilder(
+    column: $table.tokenHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ApiTokensTableOrderingComposer
+    extends Composer<_$AppDatabase, $ApiTokensTable> {
+  $$ApiTokensTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get tokenHash => $composableBuilder(
+    column: $table.tokenHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ApiTokensTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ApiTokensTable> {
+  $$ApiTokensTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get tokenHash =>
+      $composableBuilder(column: $table.tokenHash, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ApiTokensTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ApiTokensTable,
+          ApiTokenRow,
+          $$ApiTokensTableFilterComposer,
+          $$ApiTokensTableOrderingComposer,
+          $$ApiTokensTableAnnotationComposer,
+          $$ApiTokensTableCreateCompanionBuilder,
+          $$ApiTokensTableUpdateCompanionBuilder,
+          (ApiTokenRow, $$ApiTokensTableReferences),
+          ApiTokenRow,
+          PrefetchHooks Function({bool userId})
+        > {
+  $$ApiTokensTableTableManager(_$AppDatabase db, $ApiTokensTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ApiTokensTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ApiTokensTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ApiTokensTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> tokenHash = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ApiTokensCompanion(
+                tokenHash: tokenHash,
+                userId: userId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String tokenHash,
+                required int userId,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ApiTokensCompanion.insert(
+                tokenHash: tokenHash,
+                userId: userId,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ApiTokensTable, ApiTokenRow>(table),
+                  $$ApiTokensTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.userId,
+                        referencedTable: $$ApiTokensTableReferences
+                            ._userIdTable(db),
+                        referencedColumn: $$ApiTokensTableReferences
+                            ._userIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ApiTokensTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ApiTokensTable,
+      ApiTokenRow,
+      $$ApiTokensTableFilterComposer,
+      $$ApiTokensTableOrderingComposer,
+      $$ApiTokensTableAnnotationComposer,
+      $$ApiTokensTableCreateCompanionBuilder,
+      $$ApiTokensTableUpdateCompanionBuilder,
+      (ApiTokenRow, $$ApiTokensTableReferences),
+      ApiTokenRow,
+      PrefetchHooks Function({bool userId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7887,4 +8660,6 @@ class $AppDatabaseManager {
       $$FavoritesTableTableManager(_db, _db.favorites);
   $$PomodoroLogsTableTableManager get pomodoroLogs =>
       $$PomodoroLogsTableTableManager(_db, _db.pomodoroLogs);
+  $$ApiTokensTableTableManager get apiTokens =>
+      $$ApiTokensTableTableManager(_db, _db.apiTokens);
 }
