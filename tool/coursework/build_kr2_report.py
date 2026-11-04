@@ -1,11 +1,10 @@
 """Сборка отчёта о выполнении задания на курсовой проект КР 2 (DOCX и PDF).
 
-Текст отчёта — docs/Отчёт_по_критериям_КР_2.md, приложение А (журнал
-проверки API) — docs/Проверка_API_КР_2.md, приложение Б — пары картинок
-«прототип — приложение» из docs/coursework/prototype_compare/.
-DOCX оформляется так же, как отчёт по критериям
-(tool/coursework/build_criteria_report.py): альбомные страницы,
-Times New Roman 14, пометки [ПРОВЕРИТЬ] жёлтым.
+Текст отчёта — docs/Отчёт_по_критериям_КР_2.md (пары картинок «прототип —
+приложение» берутся из docs/coursework/prototype_compare/).
+DOCX оформляется как курсовая (tool/coursework/build_coursework.py):
+книжные страницы A4 с полями по ГОСТ, Times New Roman 14, пометки
+[ПРОВЕРИТЬ] жёлтым.
 
 PDF: если установлен LibreOffice — из DOCX, как у остальных документов;
 если нет — из HTML через Google Chrome (--headless --print-to-pdf).
@@ -17,7 +16,6 @@ PDF: если установлен LibreOffice — из DOCX, как у оста
 """
 
 import argparse
-import html
 import os
 import re
 import shutil
@@ -26,38 +24,17 @@ import sys
 import tempfile
 
 from docx import Document
+from docx.shared import Cm
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_coursework as bc  # noqa: E402
-import build_criteria_report as cr  # noqa: E402
 
 DOCS = os.path.join(bc.ROOT, "docs")
 SOURCE = os.path.join(DOCS, "Отчёт_по_критериям_КР_2.md")
-API_LOG = os.path.join(DOCS, "Проверка_API_КР_2.md")
-COMPARE = os.path.join(DOCS, "coursework", "prototype_compare")
 OUT_DOCX = os.path.join(DOCS, "Отчёт_по_критериям_КР_2.docx")
 OUT_PDF = os.path.join(DOCS, "Отчёт_по_критериям_КР_2.pdf")
 AUTHOR = "Баринов Николай"
 TITLE = "Отчёт о выполнении задания на курсовой проект"
-
-# Подписи к парам картинок (имя файла без номера → название экрана).
-SCREENS = {
-    "splash": "Splash", "login": "Вход", "register": "Регистрация",
-    "onb1": "Онбординг: направление", "onb2": "Онбординг: тест",
-    "onb3": "Онбординг: расписание", "preview": "Предпросмотр плана",
-    "home": "Главная", "plan": "План", "plans": "Мои планы",
-    "session": "Занятие", "pomodoro": "Pomodoro", "topics": "Темы",
-    "stats": "Статистика", "profile": "Профиль",
-    "editprofile": "Редактирование профиля (только макет)",
-}
-
-
-def demote(text):
-    """Заголовки приложения на уровень ниже, первый заголовок убирается."""
-    lines = text.splitlines()
-    if lines and lines[0].startswith("# "):
-        lines = lines[1:]
-    return "\n".join("#" + l if l.startswith("#") else l for l in lines)
 
 
 def assemble():
@@ -78,24 +55,31 @@ def assemble():
         "",
     ]
     with open(SOURCE, encoding="utf-8") as f:
-        parts.append(f.read())
-    with open(API_LOG, encoding="utf-8") as f:
-        parts += ["", "## Приложение А. Проверка работы с данными через API", "",
-                  demote(f.read())]
-    parts += ["", "## Приложение Б. Экраны: прототип и приложение", "",
-              "На каждой картинке слева экран прототипа (docs/concept/wireframes.html), "
-              "справа тот же экран приложения.", ""]
-    for i, name in enumerate(sorted(os.listdir(COMPARE)), 1):
-        key = re.sub(r"^\d+_|\.png$", "", name)
-        # Путь относительно docs/ (pandoc ищет картинки через --resource-path):
-        # абсолютный путь попал бы в свойства рисунка в DOCX.
-        path = os.path.relpath(os.path.join(COMPARE, name), DOCS).replace(os.sep, "/")
-        parts += [f"![Рисунок Б.{i} — {SCREENS.get(key, key)}]({path}){{height=7.5cm}}", ""]
+        text = f.read()
+    # Высота пар картинок «прототип — приложение» (в самом .md её нет,
+    # чтобы файл нормально читался на GitHub).
+    text = re.sub(r"^(!\[[^\]]*\]\([^)]*\))$", r"\1{height=8cm}", text, flags=re.M)
+    parts.append(text)
     os.makedirs(bc.BUILD, exist_ok=True)
     path = os.path.join(bc.BUILD, "kr2_report.md")
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(parts) + "\n")
     return path
+
+
+def postprocess(raw, out):
+    """Оформление как у курсовой, страницы книжные."""
+    doc = Document(raw)
+    bc.setup_styles(doc)
+    bc.setup_page(doc)
+    bc.format_paragraphs(doc)
+    for p in doc.paragraphs:
+        if re.match(r"^Таблица \d+ — ", p.text):
+            bc.para_format(p.paragraph_format, bc.WD_ALIGN_PARAGRAPH.LEFT, Cm(0), before=6)
+            p.paragraph_format.keep_with_next = True
+    bc.format_tables(doc)
+    bc.highlight_checks(doc)
+    doc.save(out)
 
 
 def set_properties(path):
@@ -109,7 +93,7 @@ def set_properties(path):
 
 
 HTML_STYLE = """
-@page { size: A4 landscape; margin: 2cm; }
+@page { size: A4; margin: 2cm 1.5cm 2cm 3cm; }
 body { font-family: "Times New Roman", serif; font-size: 14pt; line-height: 1.4; }
 h1 { font-size: 16pt; text-align: center; }
 h2 { font-size: 15pt; page-break-after: avoid; }
@@ -121,7 +105,7 @@ code { font-size: 10.5pt; }
 td code { white-space: normal; overflow-wrap: anywhere; }
 pre { font-size: 10pt; white-space: pre-wrap; border: 1px solid #999; padding: 4pt; }
 figure { text-align: center; page-break-inside: avoid; margin: 8pt 0; }
-figure img { height: 7.5cm; }
+figure img { height: 8cm; }
 figcaption { font-size: 12pt; }
 mark { background: yellow; }
 """
@@ -168,7 +152,7 @@ def main():
          "--resource-path", DOCS, "--reference-doc", bc.reference_doc(), "-o", raw],
         check=True,
     )
-    cr.postprocess(raw, OUT_DOCX)
+    postprocess(raw, OUT_DOCX)
     set_properties(OUT_DOCX)
     print("DOCX:", os.path.relpath(OUT_DOCX, bc.ROOT))
     if args.pdf:
