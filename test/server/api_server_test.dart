@@ -541,6 +541,207 @@ void main() {
         ),
       );
     });
+
+    test('статистика считается на сервере только по своим данным', () async {
+      final (api, userId) = await clientFor('user@mail.ru');
+      final plans = ApiPlanRepository(api);
+      final planId = await PlanService(plans, clock: () => today).createPlan(
+        userId: userId,
+        directionId: 'flutter',
+        title: 'Мой план',
+        topics: topics,
+        settings: settings,
+        knownTopicIds: const {},
+      );
+      final sessions = await plans.sessions(planId);
+      final first = sessions.first;
+      await plans.setSessionDone(first.id, done: true);
+      final token = api.token!;
+      await call(
+        'POST',
+        '/api/pomodoros',
+        body: {'minutes': 25, 'topicTitle': 'Dart'},
+        token: token,
+      );
+      await call(
+        'POST',
+        '/api/notes',
+        body: {'title': 'Dart', 'body': 'var и final'},
+        token: token,
+      );
+      // Данные второго пользователя не должны попасть в статистику.
+      final other = await signIn('other@mail.ru');
+      await call('POST', '/api/pomodoros', body: {'minutes': 50}, token: other);
+
+      final reply = await call('GET', '/api/stats', token: token);
+      expect(reply.status, 200);
+      expect(reply.body['plans'], 1);
+      expect(reply.body['sessionsTotal'], sessions.length);
+      expect(reply.body['sessionsDone'], 1);
+      expect(reply.body['donePercent'], (100 / sessions.length).round());
+      expect(reply.body['minutesDone'], first.minutes);
+      expect(reply.body['byCategory'], [
+        {'category': first.category, 'minutes': first.minutes, 'sessions': 1},
+      ]);
+      expect(reply.body['pomodoros'], 1);
+      expect(reply.body['pomodoroMinutes'], 25);
+      expect(reply.body['notes'], 1);
+
+      // У нового пользователя всё по нулям, без деления на ноль.
+      final empty = await call('GET', '/api/stats', token: other);
+      expect(empty.body['sessionsTotal'], 0);
+      expect(empty.body['donePercent'], 0);
+      expect(empty.body['byCategory'], isEmpty);
+      expect(empty.body['pomodoroMinutes'], 50);
+      expect((await call('GET', '/api/stats')).status, 401);
+    });
+
+    test('выгрузка всех данных пользователя одним файлом JSON', () async {
+      final (api, userId) = await clientFor('user@mail.ru');
+      final plans = ApiPlanRepository(api);
+      final planId = await PlanService(plans, clock: () => today).createPlan(
+        userId: userId,
+        directionId: 'flutter',
+        title: 'Мой план',
+        topics: topics,
+        settings: settings,
+        knownTopicIds: const {},
+      );
+      final token = api.token!;
+      await call(
+        'POST',
+        '/api/notes',
+        body: {'title': 'Dart', 'body': 'var и final'},
+        token: token,
+      );
+      await call('POST', '/api/favorites/dart/toggle', token: token);
+
+      final response = await server.handler(
+        Request(
+          'GET',
+          Uri.parse('http://localhost/api/me/export'),
+          headers: {'authorization': 'Bearer $token'},
+        ),
+      );
+      expect(response.statusCode, 200);
+      expect(
+        response.headers['content-disposition'],
+        contains('marshrut_export.json'),
+      );
+      final text = await response.readAsString();
+      // В выгрузке нет пароля и его хэша.
+      expect(text, isNot(contains('secret123')));
+      expect(text, isNot(contains('pbkdf2')));
+      final data = jsonDecode(text) as Map<String, dynamic>;
+      expect(data['user']['email'], 'user@mail.ru');
+      final plan = (data['plans'] as List).single as Map<String, dynamic>;
+      expect(plan['id'], planId);
+      expect((plan['topics'] as List).map((t) => t['topicId']), [
+        'dart',
+        'widgets',
+      ]);
+      expect(
+        plan['sessions'] as List,
+        hasLength((await plans.sessions(planId)).length),
+      );
+      expect((data['notes'] as List).single['title'], 'Dart');
+      expect(data['favorites'], ['dart']);
+      expect((await call('GET', '/api/me/export')).status, 401);
+    });
+  });
+
+  group('защита входа от подбора пароля', () {
+    test('после 5 неверных паролей вход закрыт на 15 минут', () async {
+      var now = DateTime(2026, 11, 5, 10);
+      final guarded = ApiServer(
+        db: db,
+        catalog: catalogJson(),
+        hasher: fastHasher(),
+        clock: () => now,
+      );
+      await call(
+        'POST',
+        '/api/auth/register',
+        body: {
+          'name': 'Алия',
+          'email': 'user@mail.ru',
+          'password': 'secret123',
+        },
+        to: guarded,
+      );
+      Future<Reply> login(String email, String password) => call(
+        'POST',
+        '/api/auth/login',
+        body: {'email': email, 'password': password},
+        to: guarded,
+      );
+
+      // Первые 5 ошибок — обычный ответ 400 «Неверный email или пароль».
+      for (var i = 0; i < 5; i++) {
+        expect((await login('user@mail.ru', 'wrong-pass')).status, 400);
+      }
+      // Дальше вход закрыт даже с верным паролем, и email в другом
+      // регистре не обходит блокировку.
+      final locked = await login(' User@Mail.ru', 'secret123');
+      expect(locked.status, 429);
+      expect(locked.body['error'], contains('через 15 мин'));
+
+      // Через 15 минут вход снова открыт.
+      now = now.add(const Duration(minutes: 15));
+      expect((await login('user@mail.ru', 'secret123')).status, 200);
+    });
+
+    test('успешный вход обнуляет счётчик ошибок', () async {
+      final guarded = ApiServer(
+        db: db,
+        catalog: catalogJson(),
+        hasher: fastHasher(),
+        maxLoginAttempts: 3,
+      );
+      await call(
+        'POST',
+        '/api/auth/register',
+        body: {
+          'name': 'Алия',
+          'email': 'user@mail.ru',
+          'password': 'secret123',
+        },
+        to: guarded,
+      );
+      Future<int> login(String password) async => (await call(
+        'POST',
+        '/api/auth/login',
+        body: {'email': 'user@mail.ru', 'password': password},
+        to: guarded,
+      )).status;
+
+      expect(await login('wrong-pass'), 400);
+      expect(await login('wrong-pass'), 400);
+      expect(await login('secret123'), 200);
+      // Счётчик начался заново: ещё две ошибки не закрывают вход.
+      expect(await login('wrong-pass'), 400);
+      expect(await login('wrong-pass'), 400);
+      expect(await login('secret123'), 200);
+      // Блокировка одного email не мешает входу других пользователей.
+      for (var i = 0; i < 3; i++) {
+        await login('wrong-pass');
+      }
+      expect(await login('secret123'), 429);
+      final otherReg = await call(
+        'POST',
+        '/api/auth/register',
+        body: {'name': 'Бек', 'email': 'b@mail.ru', 'password': 'secret123'},
+        to: guarded,
+      );
+      expect(otherReg.status, 201);
+      final other = await call(
+        'POST',
+        '/api/auth/login',
+        body: {'email': 'b@mail.ru', 'password': 'secret123'},
+        to: guarded,
+      );
+      expect(other.status, 200);
+    });
   });
 
   group('Pomodoro', () {
