@@ -1602,6 +1602,8 @@ void main() {
 | PUT | `/api/me/password` | Смена пароля |
 | PUT | `/api/me/reminder` | Время ежедневного напоминания |
 | DELETE | `/api/me` | Удаление аккаунта со всеми данными |
+| GET | `/api/me/export` | Выгрузка всех своих данных одним файлом JSON (резервная копия) |
+| GET | `/api/stats` | Статистика, посчитанная на сервере: занятия, часы по категориям, Pomodoro, заметки |
 | GET | `/api/plans` | Список планов |
 | POST | `/api/plans` | Сохранение нового плана |
 | GET | `/api/plans/active` | Активный план |
@@ -1646,6 +1648,8 @@ class ApiServer {
     PasswordHasher? hasher,
     this.log,
     this.tokenLifetime = const Duration(days: 30),
+    this.maxLoginAttempts = 5,
+    this.loginLockTime = const Duration(minutes: 15),
     DateTime Function()? clock,
   }) : _auth = AuthRepositoryImpl(db, hasher: hasher),
        _plans = PlanRepositoryImpl(db),
@@ -1668,6 +1672,18 @@ class ApiServer {
 
   /// Сколько действует токен входа.
   final Duration tokenLifetime;
+
+  /// Сколько неверных паролей подряд можно ввести, прежде чем вход по
+  /// этому email закроется.
+  final int maxLoginAttempts;
+
+  /// На сколько закрывается вход после [maxLoginAttempts] ошибок.
+  final Duration loginLockTime;
+
+  /// Неудачные попытки входа: email → сколько ошибок подряд и до какого
+  /// времени вход закрыт. Хранится в памяти сервера: после перезапуска
+  /// счётчики начинаются заново, для учебного сервера этого достаточно.
+  final _failedLogins = <String, ({int count, DateTime? lockedUntil})>{};
 
   /// Репозиторий пользователей (регистрация, вход, профиль).
   final AuthRepositoryImpl _auth;
@@ -1717,6 +1733,8 @@ class ApiServer {
     r.delete('/api/me', _deleteAccount);
     r.put('/api/me/password', _changePassword);
     r.put('/api/me/reminder', _updateReminder);
+    r.get('/api/me/export', _exportData);
+    r.get('/api/stats', _stats);
 
     // Планы обучения.
     r.get('/api/plans', _listPlans);
@@ -1950,6 +1968,145 @@ class ApiServer {
   }
 
   // … обработчики запросов …
+
+  /// POST /api/auth/login — вход. Тело: email, password.
+  /// Ответ: токен и данные пользователя. После [maxLoginAttempts] неверных
+  /// паролей подряд вход по этому email закрыт на [loginLockTime] (код 429).
+  Future<Response> _login(Request request) async {
+    final body = await _body(request);
+    final email = _field<String>(body, 'email');
+    final password = _field<String>(body, 'password');
+    // Email приводим к тому же виду, что и при регистрации: « A@mail.ru »
+    // и «a@mail.ru» — один и тот же счётчик.
+    final key = email.trim().toLowerCase();
+    _checkLoginLock(key);
+    final AppUser user;
+    try {
+      user = await _auth.login(email: email, password: password);
+    } on AppException {
+      _registerFailedLogin(key);
+      rethrow;
+    }
+    // Успешный вход обнуляет счётчик ошибок.
+    _failedLogins.remove(key);
+    final token = await issueToken(user.id);
+    return _json({'token': token, 'user': userToJson(user)});
+  }
+
+  /// Если вход по email [key] сейчас закрыт — ошибка 429 с числом минут,
+  /// через которое можно попробовать снова. Закрытый вход не проверяет
+  /// пароль вообще: иначе перебор продолжался бы, просто без ответа «да».
+  void _checkLoginLock(String key) {
+    final lockedUntil = _failedLogins[key]?.lockedUntil;
+    if (lockedUntil == null) return;
+    final left = lockedUntil.difference(_clock());
+    if (left <= Duration.zero) {
+      // Время блокировки прошло: начинаем считать ошибки заново.
+      _failedLogins.remove(key);
+      return;
+    }
+    // Округляем вверх, чтобы не написать «через 0 мин.».
+    final minutes = (left.inSeconds / 60).ceil();
+    throw HttpError(
+      429,
+      'Слишком много неудачных попыток входа. '
+      'Попробуйте снова через $minutes мин.',
+    );
+  }
+
+  /// Засчитывает неверный пароль для email [key]; на [maxLoginAttempts]-й
+  /// ошибке подряд закрывает вход на [loginLockTime].
+  void _registerFailedLogin(String key) {
+    final count = (_failedLogins[key]?.count ?? 0) + 1;
+    _failedLogins[key] = (
+      count: count,
+      lockedUntil: count >= maxLoginAttempts
+          ? _clock().add(loginLockTime)
+          : null,
+    );
+  }
+
+  // …
+
+  /// GET /api/stats — статистика пользователя, посчитанная на сервере
+  /// SQL-запросами (COUNT, SUM, GROUP BY), а не перебором записей в
+  /// приложении: планы, занятия, часы по категориям, Pomodoro, заметки.
+  Future<Response> _stats(Request request) async {
+    final userId = await _userId(request);
+    final user = Variable.withInt(userId);
+
+    // Занятия всех планов пользователя: всего, выполнено, минуты.
+    final sessions = await db
+        .customSelect(
+          'SELECT COUNT(*) AS total, '
+          'COALESCE(SUM(s.is_done), 0) AS done, '
+          'COALESCE(SUM(CASE WHEN s.is_done = 1 THEN s.minutes END), 0) '
+          'AS done_minutes '
+          'FROM sessions s JOIN plans p ON p.id = s.plan_id '
+          'WHERE p.user_id = ?',
+          variables: [user],
+          readsFrom: {db.sessions, db.plans},
+        )
+        .getSingle();
+
+    // Выполненные минуты по категориям тем, больше — выше.
+    final categories = await db
+        .customSelect(
+          'SELECT s.category AS category, SUM(s.minutes) AS minutes, '
+          'COUNT(*) AS sessions '
+          'FROM sessions s JOIN plans p ON p.id = s.plan_id '
+          'WHERE p.user_id = ? AND s.is_done = 1 '
+          'GROUP BY s.category ORDER BY minutes DESC, category',
+          variables: [user],
+          readsFrom: {db.sessions, db.plans},
+        )
+        .get();
+
+    // Pomodoro: сколько интервалов и сколько минут всего.
+    final pomodoros = await db
+        .customSelect(
+          'SELECT COUNT(*) AS count, COALESCE(SUM(minutes), 0) AS minutes '
+          'FROM pomodoro_logs WHERE user_id = ?',
+          variables: [user],
+          readsFrom: {db.pomodoroLogs},
+        )
+        .getSingle();
+
+    final plans =
+        await (db.selectOnly(db.plans)
+              ..addColumns([db.plans.id.count()])
+              ..where(db.plans.userId.equals(userId)))
+            .map((row) => row.read(db.plans.id.count()))
+            .getSingle();
+    final notes =
+        await (db.selectOnly(db.notes)
+              ..addColumns([db.notes.id.count()])
+              ..where(db.notes.userId.equals(userId)))
+            .map((row) => row.read(db.notes.id.count()))
+            .getSingle();
+
+    final total = sessions.read<int>('total');
+    final done = sessions.read<int>('done');
+    return _json({
+      'plans': plans,
+      'sessionsTotal': total,
+      'sessionsDone': done,
+      // Процент выполненных занятий, целое число от 0 до 100.
+      'donePercent': total == 0 ? 0 : (done * 100 / total).round(),
+      'minutesDone': sessions.read<int>('done_minutes'),
+      'byCategory': [
+        for (final row in categories)
+          {
+            'category': row.read<String>('category'),
+            'minutes': row.read<int>('minutes'),
+            'sessions': row.read<int>('sessions'),
+          },
+      ],
+      'pomodoros': pomodoros.read<int>('count'),
+      'pomodoroMinutes': pomodoros.read<int>('minutes'),
+      'notes': notes,
+    });
+  }
 }
 ```
 
